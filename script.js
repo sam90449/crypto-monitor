@@ -1,6 +1,6 @@
-const leftCache = null;
-const rightCache = null;
-const macroCache = null;
+let leftCache = null;
+let rightCache = null;
+let macroCache = null;
 
 async function safeFetch(url,retry=3){
 
