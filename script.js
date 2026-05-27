@@ -1,18 +1,57 @@
+let leftCache = null;
+let rightCache = null;
+let macroCache = null;
+
+async function safeFetch(url,retry=2){
+
+    for(let i=0;i<=retry;i++){
+
+        try{
+
+            const response =
+            await fetch(url,{
+
+                cache:"no-cache"
+
+            });
+
+            if(response.ok){
+
+                return response;
+
+            }
+
+        }catch(e){
+
+        }
+
+        await new Promise(r=>setTimeout(r,500));
+
+    }
+
+    throw new Error("FETCH FAIL");
+
+}
+
 async function getKlines(symbol){
 
     const url =
     `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
 
     const response =
-    await fetch(url);
+    await safeFetch(url);
 
-    if(!response.ok){
+    return await response.json();
 
-        throw new Error(
-            "HTTP " + response.status
-        );
+}
 
-    }
+async function getTicker(symbol){
+
+    const url =
+    `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`;
+
+    const response =
+    await safeFetch(url);
 
     return await response.json();
 
@@ -165,20 +204,18 @@ function renderPredict(percent,id){
 
     }
 
-    document.getElementById(id).innerHTML =
-    html;
+    const el =
+    document.getElementById(id);
+
+    if(el){
+
+        el.innerHTML = html;
+
+    }
 
 }
 
-async function loadCoin(side){
-
-    const input =
-    document.getElementById(
-        `${side}Input`
-    );
-
-    const symbol =
-    input.value.toUpperCase().trim();
+function setCoinUI(side,data){
 
     const priceArea =
     document.getElementById(
@@ -195,24 +232,81 @@ async function loadCoin(side){
         `${side}Info`
     );
 
-    const boxesArea =
-    document.getElementById(
+    if(priceArea){
+
+        priceArea.innerHTML = `
+        ${data.symbol}USDT :
+        <br>
+        ${data.price.toFixed(4)}
+        `;
+
+    }
+
+    renderPredict(
+        data.predict,
         `${side}Boxes`
     );
 
+    if(predictArea){
+
+        predictArea.innerHTML = `
+        1-3H Prediction :
+        ${data.predict.toFixed(2)}%
+        (Target:
+        ${data.target.toFixed(4)})
+        `;
+
+    }
+
+    if(detailArea){
+
+        detailArea.innerHTML = `
+        SYMBOL:
+        ${data.symbol}USDT
+
+        PRICE:
+        ${data.price.toFixed(4)}
+
+        TARGET:
+        ${data.target.toFixed(4)}
+
+        5 MA:
+        ${data.ma5.toFixed(4)}
+
+        15 MA:
+        ${data.ma15.toFixed(4)}
+
+        30 MA:
+        ${data.ma30.toFixed(4)}
+
+        5 MA SLOPE:
+        ${data.ma5slope.toFixed(4)}%
+
+        15 MA SLOPE:
+        ${data.ma15slope.toFixed(4)}%
+
+        30 MA SLOPE:
+        ${data.ma30slope.toFixed(4)}%
+
+        FINAL PREDICT:
+        ${data.predict.toFixed(4)}%
+        `;
+
+    }
+
+}
+
+async function loadCoin(side){
+
+    const input =
+    document.getElementById(
+        `${side}Input`
+    );
+
+    const symbol =
+    input.value.toUpperCase().trim();
+
     try{
-
-        priceArea.innerHTML =
-        "LOADING...";
-
-        predictArea.innerHTML =
-        "Loading...";
-
-        detailArea.innerHTML =
-        "Fetching data...";
-
-        boxesArea.innerHTML =
-        "";
 
         const klines =
         await getKlines(symbol);
@@ -225,14 +319,6 @@ async function loadCoin(side){
 
         }
 
-        if(klines.length < 30){
-
-            throw new Error(
-                "NO KLINES"
-            );
-
-        }
-
         const closes =
         klines.map(
             k=>parseFloat(k[4])
@@ -240,14 +326,6 @@ async function loadCoin(side){
 
         const price =
         closes[closes.length-1];
-
-        if(isNaN(price)){
-
-            throw new Error(
-                "PRICE NaN"
-            );
-
-        }
 
         const ma5 =
         calcMA(closes,5);
@@ -312,71 +390,54 @@ async function loadCoin(side){
             1 + predict/100
         );
 
-        priceArea.innerHTML = `
-        ${symbol}USDT :
-        <br>
-        ${price.toFixed(4)}
-        `;
+        const data = {
 
-        renderPredict(
+            symbol,
+            price,
             predict,
-            `${side}Boxes`
-        );
+            target,
 
-        predictArea.innerHTML = `
-        1-3H Prediction :
-        ${predict.toFixed(2)}%
-        (Target:
-        ${target.toFixed(4)})
-        `;
+            ma5:
+            ma5[ma5.length-1],
 
-        detailArea.innerHTML = `
-        SYMBOL:
-        ${symbol}USDT
+            ma15:
+            ma15[ma15.length-1],
 
-        PRICE:
-        ${price.toFixed(4)}
+            ma30:
+            ma30[ma30.length-1],
 
-        TARGET:
-        ${target.toFixed(4)}
+            ma5slope,
+            ma15slope,
+            ma30slope
 
-        5 MA:
-        ${ma5[ma5.length-1]?.toFixed(4)}
+        };
 
-        15 MA:
-        ${ma15[ma15.length-1]?.toFixed(4)}
+        if(side === "left"){
 
-        30 MA:
-        ${ma30[ma30.length-1]?.toFixed(4)}
+            leftCache = data;
 
-        5 MA SLOPE:
-        ${ma5slope.toFixed(4)}%
+        }else{
 
-        15 MA SLOPE:
-        ${ma15slope.toFixed(4)}%
+            rightCache = data;
 
-        30 MA SLOPE:
-        ${ma30slope.toFixed(4)}%
+        }
 
-        FINAL PREDICT:
-        ${predict.toFixed(4)}%
-        `;
+        setCoinUI(side,data);
 
     }catch(e){
 
         console.log(e);
 
-        priceArea.innerHTML =
-        "LOAD ERROR";
+        const cache =
+        side === "left"
+        ? leftCache
+        : rightCache;
 
-        predictArea.innerHTML =
-        "API FAIL";
+        if(cache){
 
-        detailArea.innerHTML = `
-        ERROR:
+            setCoinUI(side,cache);
 
-        ${e.message}
-        `;
+        }
 
     }
 
@@ -395,14 +456,21 @@ function updateHKTime(){
         }
     );
 
+    const el =
     document.getElementById(
         "updateTime"
-    ).innerHTML =
-    "HK UPDATE TIME : " + hk;
+    );
+
+    if(el){
+
+        el.innerHTML =
+        "HK UPDATE TIME : " + hk;
+
+    }
 
 }
 
-async function loadMacro(){
+function renderMacro(data){
 
     const macroArea =
     document.getElementById(
@@ -415,67 +483,106 @@ async function loadMacro(){
 
     }
 
+    macroArea.innerHTML = `
+    <div class="macro-title">
+    BTC 宏觀方向 (4-24H)
+    </div>
+
+    <div class="macro-score">
+    ${data.icon} ${data.text}
+    </div>
+
+    <div class="macro-info">
+    BTC:
+    ${data.price.toFixed(2)}
+    </div>
+
+    <div class="macro-info">
+    ETH:
+    ${data.eth.toFixed(2)}
+    </div>
+
+    <div class="macro-info">
+    TOTAL MARKET:
+    ${data.market}
+    </div>
+
+    <div class="macro-info">
+    BTC DOM:
+    ${data.dom}
+    </div>
+    `;
+
+}
+
+async function loadMacro(){
+
     try{
 
-        const response =
-        await fetch(
-            "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
-        );
+        const btc =
+        await getTicker("BTC");
 
-        if(!response.ok){
-
-            throw new Error(
-                "HTTP " + response.status
-            );
-
-        }
-
-        const data =
-        await response.json();
+        const eth =
+        await getTicker("ETH");
 
         const btcPrice =
-        parseFloat(data.price);
+        parseFloat(btc.price);
 
-        if(isNaN(btcPrice)){
+        const ethPrice =
+        parseFloat(eth.price);
 
-            throw new Error(
-                "BTC NaN"
-            );
+        let text =
+        "中性震盪";
+
+        let icon =
+        "🟡";
+
+        if(btcPrice > 80000){
+
+            text = "強勢偏多";
+            icon = "🟢";
 
         }
 
-        macroArea.innerHTML = `
-        <div class="macro-title">
-        BTC 宏觀方向 (4-24H)
-        </div>
+        if(btcPrice < 60000){
 
-        <div class="macro-score">
-        🟡 中性震盪
-        </div>
+            text = "偏弱震盪";
+            icon = "🔴";
 
-        <div class="macro-info">
-        BTC:
-        ${btcPrice.toFixed(2)}
-        </div>
-        `;
+        }
+
+        const data = {
+
+            icon,
+            text,
+
+            price:
+            btcPrice,
+
+            eth:
+            ethPrice,
+
+            market:
+            "~3.2T",
+
+            dom:
+            "~58%"
+
+        };
+
+        macroCache = data;
+
+        renderMacro(data);
 
     }catch(e){
 
         console.log(e);
 
-        macroArea.innerHTML = `
-        <div class="macro-title">
-        BTC 宏觀方向 (4-24H)
-        </div>
+        if(macroCache){
 
-        <div class="macro-score">
-        ❌ MACRO ERROR
-        </div>
+            renderMacro(macroCache);
 
-        <div class="macro-info">
-        ${e.message}
-        </div>
-        `;
+        }
 
     }
 
@@ -489,9 +596,9 @@ setInterval(()=>{
 
     loadCoin("right");
 
-},5000);
+},15000);
 
-setInterval(loadMacro,10000);
+setInterval(loadMacro,30000);
 
 updateHKTime();
 
