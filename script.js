@@ -2,17 +2,14 @@ let leftCache = null;
 let rightCache = null;
 let macroCache = null;
 
-async function safeFetch(url,retry=2){
+async function safeFetch(url,retry=3){
 
     for(let i=0;i<=retry;i++){
 
         try{
 
-            const response =
-            await fetch(url,{
-
+            const response = await fetch(url,{
                 cache:"no-cache"
-
             });
 
             if(response.ok){
@@ -25,23 +22,11 @@ async function safeFetch(url,retry=2){
 
         }
 
-        await new Promise(r=>setTimeout(r,500));
+        await new Promise(r=>setTimeout(r,400));
 
     }
 
     throw new Error("FETCH FAIL");
-
-}
-
-async function getKlines(symbol){
-
-    const url =
-    `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
-
-    const response =
-    await safeFetch(url);
-
-    return await response.json();
 
 }
 
@@ -57,35 +42,64 @@ async function getTicker(symbol){
 
 }
 
+async function getKlines(symbol){
+
+    const url =
+    `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
+
+    const response =
+    await safeFetch(url);
+
+    return await response.json();
+
+}
+
+async function getGlobalData(){
+
+    const response =
+    await safeFetch(
+        "https://api.coingecko.com/api/v3/global"
+    );
+
+    return await response.json();
+
+}
+
 function calcMA(closes,length){
 
-    const arr = [];
+    const result = [];
 
     for(let i=0;i<closes.length;i++){
 
         if(i < length-1){
 
-            arr.push(null);
+            result.push(null);
 
         }else{
 
             const slice =
-            closes.slice(i-length+1,i+1);
+            closes.slice(
+                i-length+1,
+                i+1
+            );
 
             const avg =
-            slice.reduce((a,b)=>a+b,0)/length;
+            slice.reduce(
+                (a,b)=>a+b,
+                0
+            ) / length;
 
-            arr.push(avg);
+            result.push(avg);
 
         }
 
     }
 
-    return arr;
+    return result;
 
 }
 
-function slope(values){
+function calcSlope(values){
 
     if(values.length < 2){
 
@@ -105,162 +119,157 @@ function slope(values){
 
     }
 
-    return ((last-first)/first)*100;
+    return (
+        (
+            last - first
+        ) / first
+    ) * 100;
 
 }
 
-function createBoxes(count,isUp){
+function renderPredictBoxes(containerId,predict){
+
+    const container =
+    document.getElementById(
+        containerId
+    );
+
+    if(!container){
+
+        return;
+
+    }
+
+    const abs =
+    Math.abs(predict);
 
     let html = "";
 
-    for(let i=0;i<4;i++){
+    const isUp =
+    predict >= 0;
+
+    const colorClass =
+    isUp
+    ? "green-box"
+    : "red-box";
+
+    const arrow =
+    isUp
+    ? "▲"
+    : "▼";
+
+    const levels = [
+
+        {
+            label:"1%",
+            active:abs >= 1
+        },
+
+        {
+            label:"1.5%",
+            active:abs >= 1.5
+        },
+
+        {
+            label:"2%",
+            active:abs >= 2
+        }
+
+    ];
+
+    for(const lv of levels){
 
         html += `
-        <div class="
-            predict-box
-            ${i < count ? 'active' : ''}
-            ${isUp ? 'green' : 'red'}
-        ">
+
+        <div class="predict-line">
+
+            <div class="
+                predict-left
+                ${isUp ? 'up-text' : 'down-text'}
+            ">
+
+                ${arrow} ${lv.label}
+
+            </div>
+
+            <div class="predict-right">
+
+                <div class="
+                    predict-square
+                    ${lv.active ? colorClass : ''}
+                "></div>
+
+                <div class="
+                    predict-square
+                    ${lv.active ? colorClass : ''}
+                "></div>
+
+                <div class="
+                    predict-square
+                    ${lv.active ? colorClass : ''}
+                "></div>
+
+                <div class="
+                    predict-square
+                    ${lv.active ? colorClass : ''}
+                "></div>
+
+            </div>
+
         </div>
+
         `;
 
     }
 
-    return html;
+    container.innerHTML = html;
 
 }
 
-function createRow(label,count,isUp){
+function renderCoin(side,data){
 
-    return `
-    <div class="predict-row">
-
-        <div class="
-            predict-label
-            ${isUp ? 'up' : 'down'}
-        ">
-
-            ${isUp ? '▲' : '▼'} ${label}
-
-        </div>
-
-        <div class="predict-boxes">
-
-            ${createBoxes(count,isUp)}
-
-        </div>
-
-    </div>
-    `;
-
-}
-
-function renderPredict(percent,id){
-
-    const abs =
-    Math.abs(percent);
-
-    let html = "";
-
-    if(percent >= 0){
-
-        html += createRow(
-            "1%",
-            abs >= 1 ? 1 : 0,
-            true
-        );
-
-        html += createRow(
-            "1.5%",
-            abs >= 1.5 ? 2 : 0,
-            true
-        );
-
-        html += createRow(
-            "2%",
-            abs >= 2 ? 3 : 0,
-            true
-        );
-
-    }else{
-
-        html += createRow(
-            "1%",
-            abs >= 1 ? 1 : 0,
-            false
-        );
-
-        html += createRow(
-            "1.5%",
-            abs >= 1.5 ? 2 : 0,
-            false
-        );
-
-        html += createRow(
-            "2%",
-            abs >= 2 ? 3 : 0,
-            false
-        );
-
-    }
-
-    const el =
-    document.getElementById(id);
-
-    if(el){
-
-        el.innerHTML = html;
-
-    }
-
-}
-
-function setCoinUI(side,data){
-
-    const priceArea =
+    const priceEl =
     document.getElementById(
         `${side}Price`
     );
 
-    const predictArea =
-    document.getElementById(
-        `${side}Prediction`
-    );
-
-    const detailArea =
+    const infoEl =
     document.getElementById(
         `${side}Info`
     );
 
-    if(priceArea){
+    const predictEl =
+    document.getElementById(
+        `${side}Prediction`
+    );
 
-        priceArea.innerHTML = `
+    if(priceEl){
+
+        priceEl.innerHTML = `
         ${data.symbol}USDT :
         <br>
         ${data.price.toFixed(4)}
         `;
-
     }
 
-    renderPredict(
-        data.predict,
-        `${side}Boxes`
+    renderPredictBoxes(
+        `${side}Boxes`,
+        data.predict
     );
 
-    if(predictArea){
+    if(predictEl){
 
-        predictArea.innerHTML = `
+        predictEl.innerHTML = `
         1-3H Prediction :
         ${data.predict.toFixed(2)}%
         (Target:
         ${data.target.toFixed(4)})
         `;
-
     }
 
-    if(detailArea){
+    if(infoEl){
 
-        detailArea.innerHTML = `
+        infoEl.innerHTML = `
         SYMBOL:
         ${data.symbol}USDT
 
@@ -291,7 +300,6 @@ function setCoinUI(side,data){
         FINAL PREDICT:
         ${data.predict.toFixed(4)}%
         `;
-
     }
 
 }
@@ -304,20 +312,14 @@ async function loadCoin(side){
     );
 
     const symbol =
-    input.value.toUpperCase().trim();
+    input.value
+    .toUpperCase()
+    .trim();
 
     try{
 
         const klines =
         await getKlines(symbol);
-
-        if(!Array.isArray(klines)){
-
-            throw new Error(
-                "BAD DATA"
-            );
-
-        }
 
         const closes =
         klines.map(
@@ -325,7 +327,9 @@ async function loadCoin(side){
         );
 
         const price =
-        closes[closes.length-1];
+        closes[
+            closes.length-1
+        ];
 
         const ma5 =
         calcMA(closes,5);
@@ -337,35 +341,27 @@ async function loadCoin(side){
         calcMA(closes,30);
 
         const ma5slope =
-        slope(
-            ma5
-            .slice(-5)
-            .filter(v=>v)
+        calcSlope(
+            ma5.slice(-5).filter(v=>v)
         );
 
         const ma15slope =
-        slope(
-            ma15
-            .slice(-5)
-            .filter(v=>v)
+        calcSlope(
+            ma15.slice(-5).filter(v=>v)
         );
 
         const ma30slope =
-        slope(
-            ma30
-            .slice(-5)
-            .filter(v=>v)
+        calcSlope(
+            ma30.slice(-5).filter(v=>v)
         );
 
-        let predict = (
+        let predict =
 
             ma5slope * 0.5 +
 
             ma15slope * 0.3 +
 
-            ma30slope * 0.2
-
-        );
+            ma30slope * 0.2;
 
         if(isNaN(predict)){
 
@@ -387,15 +383,15 @@ async function loadCoin(side){
 
         const target =
         price * (
-            1 + predict/100
+            1 + predict / 100
         );
 
         const data = {
 
             symbol,
             price,
-            predict,
             target,
+            predict,
 
             ma5:
             ma5[ma5.length-1],
@@ -422,7 +418,7 @@ async function loadCoin(side){
 
         }
 
-        setCoinUI(side,data);
+        renderCoin(side,data);
 
     }catch(e){
 
@@ -435,7 +431,7 @@ async function loadCoin(side){
 
         if(cache){
 
-            setCoinUI(side,cache);
+            renderCoin(side,cache);
 
         }
 
@@ -464,7 +460,7 @@ function updateHKTime(){
     if(el){
 
         el.innerHTML =
-        "HK UPDATE TIME : " + hk;
+        `HK UPDATE TIME : ${hk}`;
 
     }
 
@@ -472,45 +468,57 @@ function updateHKTime(){
 
 function renderMacro(data){
 
-    const macroArea =
+    const macro =
     document.getElementById(
         "macroArea"
     );
 
-    if(!macroArea){
+    if(!macro){
 
         return;
 
     }
 
-    macroArea.innerHTML = `
-    <div class="macro-title">
-    BTC 宏觀方向 (4-24H)
+    macro.innerHTML = `
+
+    <div class="macro-main-title">
+
+        BTC 宏觀方向（4-24H）
+
     </div>
 
-    <div class="macro-score">
-    ${data.icon} ${data.text}
+    <div class="macro-status-row">
+
+        <span class="macro-dot">
+        ${data.icon}
+        </span>
+
+        <span class="macro-status">
+        ${data.status}
+        </span>
+
     </div>
 
-    <div class="macro-info">
-    BTC:
-    ${data.price.toFixed(2)}
+    <div class="macro-price">
+        BTC:
+        ${data.btc.toFixed(2)}
     </div>
 
-    <div class="macro-info">
-    ETH:
-    ${data.eth.toFixed(2)}
+    <div class="macro-price">
+        ETH:
+        ${data.eth.toFixed(2)}
     </div>
 
-    <div class="macro-info">
-    TOTAL MARKET:
-    ${data.market}
+    <div class="macro-price">
+        TOTAL MARKET:
+        ${data.marketCap}
     </div>
 
-    <div class="macro-info">
-    BTC DOM:
-    ${data.dom}
+    <div class="macro-price">
+        BTC DOM:
+        ${data.btcDom}
     </div>
+
     `;
 
 }
@@ -525,48 +533,73 @@ async function loadMacro(){
         const eth =
         await getTicker("ETH");
 
+        const global =
+        await getGlobalData();
+
         const btcPrice =
         parseFloat(btc.price);
 
         const ethPrice =
         parseFloat(eth.price);
 
-        let text =
+        const marketCap =
+        global.data
+        .total_market_cap
+        .usd;
+
+        const btcDom =
+        global.data
+        .market_cap_percentage
+        .btc;
+
+        let status =
         "中性震盪";
 
         let icon =
         "🟡";
 
-        if(btcPrice > 80000){
+        if(btcPrice > 90000){
 
-            text = "強勢偏多";
-            icon = "🟢";
+            status =
+            "強勢偏多";
+
+            icon =
+            "🟢";
 
         }
 
-        if(btcPrice < 60000){
+        if(btcPrice < 65000){
 
-            text = "偏弱震盪";
-            icon = "🔴";
+            status =
+            "偏弱震盪";
+
+            icon =
+            "🔴";
 
         }
 
         const data = {
 
-            icon,
-            text,
-
-            price:
+            btc:
             btcPrice,
 
             eth:
             ethPrice,
 
-            market:
-            "~3.2T",
+            marketCap:
+            "~" +
+            (
+                marketCap /
+                1000000000000
+            ).toFixed(2)
+            + "T",
 
-            dom:
-            "~58%"
+            btcDom:
+            btcDom.toFixed(2)
+            + "%",
+
+            status,
+            icon
 
         };
 
@@ -588,22 +621,34 @@ async function loadMacro(){
 
 }
 
-setInterval(updateHKTime,1000);
+function startSystem(){
 
-setInterval(()=>{
+    updateHKTime();
 
     loadCoin("left");
 
     loadCoin("right");
 
-},15000);
+    loadMacro();
 
-setInterval(loadMacro,30000);
+    setInterval(
+        updateHKTime,
+        1000
+    );
 
-updateHKTime();
+    setInterval(()=>{
 
-loadCoin("left");
+        loadCoin("left");
 
-loadCoin("right");
+        loadCoin("right");
 
-loadMacro();
+    },15000);
+
+    setInterval(
+        loadMacro,
+        45000
+    );
+
+}
+
+startSystem();
