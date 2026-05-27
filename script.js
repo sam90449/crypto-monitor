@@ -3,11 +3,9 @@ async function getKlines(symbol){
     const url =
     `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
 
-    const response =
-    await fetch(url);
+    const response = await fetch(url);
 
     return await response.json();
-
 }
 
 function calcMA(closes,length){
@@ -29,13 +27,10 @@ function calcMA(closes,length){
             slice.reduce((a,b)=>a+b,0)/length;
 
             arr.push(avg);
-
         }
-
     }
 
     return arr;
-
 }
 
 function slope(values){
@@ -51,63 +46,98 @@ function slope(values){
         return 0;
     }
 
-    return (last-first)/Math.abs(first);
-
+    return ((last-first)/first)*100;
 }
 
-function fillBoxes(side,percent){
+function createBoxes(percent){
 
-    const boxes =
-    document.querySelectorAll(`.${side}-box`);
+    let html = "";
 
-    boxes.forEach(x=>{
-        x.classList.remove("red-fill");
-    });
+    for(let i=0;i<4;i++){
 
-    let level = 0;
-
-    if(percent >= 2){
-        level = 4;
-    }
-    else if(percent >= 1.5){
-        level = 3;
-    }
-    else if(percent >= 1){
-        level = 2;
+        html += `
+        <div class="predict-box
+        ${i < percent ? 'active' : ''}">
+        </div>
+        `;
     }
 
-    for(let i=0;i<level;i++){
+    return html;
+}
 
-        if(boxes[i]){
-            boxes[i].classList.add("red-fill");
-        }
+function createRow(label,count,isUp){
 
+    return `
+    <div class="predict-row">
+
+        <div class="
+        predict-label
+        ${isUp ? 'up' : 'down'}
+        ">
+
+        ${isUp ? '▲' : '▼'}${label}
+
+        </div>
+
+        <div class="predict-boxes">
+
+        ${createBoxes(count)}
+
+        </div>
+
+    </div>
+    `;
+}
+
+function renderPredict(percent,id){
+
+    const abs = Math.abs(percent);
+
+    let html = "";
+
+    if(percent >= 0){
+
+        html += createRow("1%",abs >= 1 ? 1 : 0,true);
+        html += createRow("1.5%",abs >= 1.5 ? 2 : 0,true);
+        html += createRow("2%",abs >= 2 ? 3 : 0,true);
+
+        html += createRow("1%",0,false);
+        html += createRow("1.5%",0,false);
+        html += createRow("2%",0,false);
+
+    }else{
+
+        html += createRow("1%",0,true);
+        html += createRow("1.5%",0,true);
+        html += createRow("2%",0,true);
+
+        html += createRow("1%",abs >= 1 ? 1 : 0,false);
+        html += createRow("1.5%",abs >= 1.5 ? 2 : 0,false);
+        html += createRow("2%",abs >= 2 ? 3 : 0,false);
     }
 
+    document.getElementById(id).innerHTML = html;
 }
 
 async function loadCoin(side){
 
-    let symbol = "";
+    const input =
+    document.getElementById(`${side}Input`);
 
-    if(side === "left"){
-        symbol =
-        document.getElementById("leftInput")
-        .value
-        .trim()
-        .toUpperCase();
-    }
-    else{
-        symbol =
-        document.getElementById("rightInput")
-        .value
-        .trim()
-        .toUpperCase();
-    }
+    const symbol =
+    input.value.toUpperCase();
 
-    if(symbol === ""){
-        return;
-    }
+    const priceArea =
+    document.getElementById(`${side}Price`);
+
+    const predictArea =
+    document.getElementById(`${side}Predict`);
+
+    const detailArea =
+    document.getElementById(`${side}Detail`);
+
+    const boxArea =
+    document.getElementById(`${side}Boxes`);
 
     try{
 
@@ -115,267 +145,220 @@ async function loadCoin(side){
         await getKlines(symbol);
 
         const closes =
-        klines
-        .slice(0,-1)
-        .map(k=>parseFloat(k[4]));
-
-        const volumes =
-        klines
-        .slice(0,-1)
-        .map(k=>parseFloat(k[5]));
+        klines.map(k=>parseFloat(k[4]));
 
         const price =
         closes[closes.length-1];
 
         const ma5 =
-        closes.slice(-5)
-        .reduce((a,b)=>a+b,0)/5;
+        calcMA(closes,5);
 
         const ma15 =
-        closes.slice(-15)
-        .reduce((a,b)=>a+b,0)/15;
+        calcMA(closes,15);
 
         const ma30 =
-        closes.slice(-30)
-        .reduce((a,b)=>a+b,0)/30;
+        calcMA(closes,30);
 
-        const ma20 =
-        calcMA(closes,20)
-        .filter(x=>x!==null);
+        const ma5slope =
+        slope(ma5.slice(-5));
 
-        let recent = 13;
-        let previous = 13;
+        const ma15slope =
+        slope(ma15.slice(-5));
 
-        if(symbol === "BTC"){
-            recent = 8;
+        const ma30slope =
+        slope(ma30.slice(-5));
+
+        let predict =
+        (
+            ma5slope*0.5 +
+            ma15slope*0.3 +
+            ma30slope*0.2
+        );
+
+        if(predict > 2){
+            predict = 2;
         }
 
-        const recentMA =
-        ma20.slice(-recent);
-
-        const previousMA =
-        ma20.slice(-(recent+previous),-recent);
-
-        const A =
-        slope(recentMA);
-
-        const B =
-        slope(previousMA);
-
-        const absA =
-        Math.abs(A);
-
-        const absB =
-        Math.abs(B);
-
-        let ratio = 999;
-
-        if(absB !== 0){
-            ratio =
-            absA/absB;
-        }
-
-        const rawPredict =
-        ((ma5-ma30)/ma30)*100;
-
-        let multiplier = 1;
-
-        if(ratio >= 1.1 && ratio <= 2.6){
-            multiplier = 0.2;
-        }
-        else if(ratio >= 2.7 && ratio <= 3.6){
-            multiplier = 0.4;
-        }
-        else if(ratio >= 3.7 && ratio <= 4.1){
-            multiplier = 0.8;
-        }
-        else if(ratio >= 4.1){
-            multiplier = 1;
-        }
-
-        let finalPercent =
-        rawPredict * multiplier;
-
-        let sign = "+";
-
-        if((A-B) < 0){
-            sign = "-";
-            finalPercent =
-            -Math.abs(finalPercent);
-        }
-        else{
-            finalPercent =
-            Math.abs(finalPercent);
+        if(predict < -2){
+            predict = -2;
         }
 
         const target =
-        price*(1+finalPercent/100);
+        price * (1 + predict/100);
 
-        let predictionText =
-        `1-3H Prediction : ${sign}${Math.abs(finalPercent).toFixed(2)}% (Target: ${target.toFixed(4)})`;
+        priceArea.innerHTML =
+        `${symbol}USDT : ${price.toFixed(4)}`;
 
-        if(ratio <= 1){
+        renderPredict(
+            predict,
+            `${side}Boxes`
+        );
 
-            predictionText =
-            "1-3H Prediction : 低勝算率";
+        let predictText = "";
 
-            finalPercent = 0;
+        if(Math.abs(predict) < 0.08){
 
+            predictText =
+            "低勝算率";
+
+        }else{
+
+            predictText =
+            `${predict.toFixed(2)}%
+            (Target:
+            ${target.toFixed(4)})`;
         }
 
-        if(ratio >= 4.7){
+        predictArea.innerHTML =
+        `1-3H Prediction :
+        ${predictText}`;
 
-            predictionText =
-            `1-3H Prediction : 極高勝算率 ${sign}${Math.abs(finalPercent).toFixed(2)}%`;
+        detailArea.innerHTML =
+`
+SYMBOL:
+${symbol}USDT
 
-        }
-
-        if(side === "left"){
-
-            document.getElementById("leftPrice")
-            .innerHTML =
-            `${symbol}USDT : ${price.toFixed(4)}`;
-
-            document.getElementById("leftPrediction")
-            .innerHTML =
-            predictionText;
-
-            document.getElementById("leftInfo")
-            .innerHTML =
-
-`SYMBOL : ${symbol}USDT
-
-PRICE :
+PRICE:
 ${price.toFixed(4)}
 
-5 MA :
-${ma5.toFixed(4)}
+5 MA:
+${ma5[ma5.length-1]?.toFixed(4)}
 
-15 MA :
-${ma15.toFixed(4)}
+15 MA:
+${ma15[ma15.length-1]?.toFixed(4)}
 
-30 MA :
-${ma30.toFixed(4)}
+30 MA:
+${ma30[ma30.length-1]?.toFixed(4)}
 
-LATEST VOLUME :
-${parseInt(volumes[volumes.length-1]).toLocaleString()}
+5 MA SLOPE:
+${ma5slope.toFixed(4)}%
 
-AVG VOLUME :
-${parseInt(
-volumes.slice(-20)
-.reduce((a,b)=>a+b,0)/20
-).toLocaleString()}
+15 MA SLOPE:
+${ma15slope.toFixed(4)}%
 
-A SLOPE :
-${A.toFixed(6)}
+30 MA SLOPE:
+${ma30slope.toFixed(4)}%
 
-B SLOPE :
-${B.toFixed(6)}
-
-RATIO :
-${ratio.toFixed(2)}
-
-RAW PREDICT :
-${rawPredict.toFixed(4)}%
-
-FINAL PREDICT :
-${finalPercent.toFixed(4)}%
+FINAL PREDICT:
+${predict.toFixed(4)}%
 `;
 
-            fillBoxes(
-            "left",
-            Math.abs(finalPercent)
-            );
+    }catch(e){
 
-        }
-        else{
+        priceArea.innerHTML =
+        "LOAD ERROR";
 
-            document.getElementById("rightPrice")
-            .innerHTML =
-            `${symbol}USDT : ${price.toFixed(4)}`;
+        predictArea.innerHTML =
+        "";
 
-            document.getElementById("rightPrediction")
-            .innerHTML =
-            predictionText;
+        detailArea.innerHTML =
+        e;
+    }
+}
 
-            document.getElementById("rightInfo")
-            .innerHTML =
+function updateHKTime(){
 
-`SYMBOL : ${symbol}USDT
+    const now = new Date();
 
-PRICE :
-${price.toFixed(4)}
-
-5 MA :
-${ma5.toFixed(4)}
-
-15 MA :
-${ma15.toFixed(4)}
-
-30 MA :
-${ma30.toFixed(4)}
-
-LATEST VOLUME :
-${parseInt(volumes[volumes.length-1]).toLocaleString()}
-
-AVG VOLUME :
-${parseInt(
-volumes.slice(-20)
-.reduce((a,b)=>a+b,0)/20
-).toLocaleString()}
-
-A SLOPE :
-${A.toFixed(6)}
-
-B SLOPE :
-${B.toFixed(6)}
-
-RATIO :
-${ratio.toFixed(2)}
-
-RAW PREDICT :
-${rawPredict.toFixed(4)}%
-
-FINAL PREDICT :
-${finalPercent.toFixed(4)}%
-`;
-
-            fillBoxes(
-            "right",
-            Math.abs(finalPercent)
-            );
-
-        }
-
-        const now =
-        new Date();
-
-        const hk =
-        now.toLocaleString(
+    const hk =
+    now.toLocaleString(
         "en-US",
         {
             timeZone:"Asia/Hong_Kong"
         }
-        );
+    );
 
-        document.getElementById("updateTime")
-        .innerHTML =
-        "HK UPDATE TIME : " + hk;
-
-    }
-    catch(err){
-
-        alert(
-        symbol + " LOAD FAILED"
-        );
-
-    }
-
+    document.getElementById(
+        "updateTime"
+    ).innerHTML =
+    "HK UPDATE TIME : " + hk;
 }
 
-setInterval(()=>{
+async function loadMacro(){
 
+    try{
+
+        const btc =
+        await fetch(
+        "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+        );
+
+        const btcJson =
+        await btc.json();
+
+        const btcPrice =
+        parseFloat(btcJson.price);
+
+        const area =
+        document.getElementById("macroArea");
+
+        area.innerHTML =
+`
+<div class="macro-title">
+BTC 宏觀方向（4-24H）
+</div>
+
+<div class="macro-score">
+🟡 宏觀方向：
+中性震盪
+|
+SCORE:
+-1
+</div>
+
+<div class="macro-info">
+BTC現價:
+${btcPrice.toFixed(2)}
+USDT
+</div>
+
+<div class="macro-info">
+美元指數(DXY):
+99.08
+(-0.09%)
+</div>
+
+<div class="macro-info">
+道瓊斯:
+50628
+(+0.33%)
+</div>
+
+<div class="macro-info">
+美債10年期:
+4.5%
+</div>
+
+<div class="macro-info">
+VIX恐慌指數:
+16.99
+</div>
+
+<div class="macro-info">
+黃金:
+4455
+</div>
+`;
+
+    }catch(e){
+
+        console.log(e);
+    }
+}
+
+setInterval(updateHKTime,1000);
+
+setInterval(()=>{
     loadCoin("left");
     loadCoin("right");
+},5000);
 
-},180000);
+setInterval(loadMacro,10000);
+
+updateHKTime();
+
+loadCoin("left");
+
+loadCoin("right");
+
+loadMacro();
