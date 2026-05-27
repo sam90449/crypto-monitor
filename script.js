@@ -4,7 +4,7 @@ let macroCache = null;
 
 async function safeFetch(url,retry=3){
 
-    for(let i=0;i<=retry;i++){
+    for(let i=0;i<retry;i++){
 
         try{
 
@@ -27,191 +27,13 @@ async function safeFetch(url,retry=3){
             console.log(e);
         }
 
-        await new Promise(
-            r=>setTimeout(r,400)
-        );
+        await new Promise(r=>setTimeout(r,800));
     }
 
     throw new Error("FETCH FAIL");
 }
 
-function renderPredictBoxes(containerId,predict){
-
-    const container =
-    document.getElementById(
-        containerId
-    );
-
-    if(!container){
-
-        return;
-    }
-
-    const abs =
-    Math.abs(predict);
-
-    const isUp =
-    predict >= 0;
-
-    const colorClass =
-    isUp
-    ? "green-box"
-    : "red-box";
-
-    const arrow =
-    isUp
-    ? "▲"
-    : "▼";
-
-    const levels = [
-
-        {
-            label:"1%",
-            active:abs >= 1
-        },
-
-        {
-            label:"1.5%",
-            active:abs >= 1.5
-        },
-
-        {
-            label:"2%",
-            active:abs >= 2
-        }
-    ];
-
-    container.innerHTML = "";
-
-    for(const lv of levels){
-
-        const line =
-        document.createElement("div");
-
-        line.className =
-        "predict-line";
-
-        const left =
-        document.createElement("div");
-
-        left.className =
-        `predict-left ${
-            isUp
-            ? "up-text"
-            : "down-text"
-        }`;
-
-        left.textContent =
-        `${arrow} ${lv.label}`;
-
-        const right =
-        document.createElement("div");
-
-        right.className =
-        "predict-right";
-
-        for(let i=0;i<4;i++){
-
-            const square =
-            document.createElement("div");
-
-            square.className =
-            lv.active
-            ? `predict-square ${colorClass}`
-            : "predict-square";
-
-            right.appendChild(square);
-        }
-
-        line.appendChild(left);
-
-        line.appendChild(right);
-
-        container.appendChild(line);
-    }
-}
-
-function renderCoin(side,data){
-
-    const priceEl =
-    document.getElementById(
-        `${side}Price`
-    );
-
-    const infoEl =
-    document.getElementById(
-        `${side}Info`
-    );
-
-    const predictEl =
-    document.getElementById(
-        `${side}Prediction`
-    );
-
-    if(priceEl){
-
-        priceEl.textContent =
-        `${data.symbol}USDT : ${data.price.toFixed(4)}`;
-    }
-
-    renderPredictBoxes(
-        `${side}Boxes`,
-        data.predict
-    );
-
-    if(predictEl){
-
-        predictEl.textContent =
-        `1-3H Prediction : ${data.predict.toFixed(2)}% (Target: ${data.target.toFixed(4)})`;
-    }
-
-    if(infoEl){
-
-        infoEl.textContent =
-`SYMBOL:
-${data.symbol}USDT
-
-PRICE:
-${data.price.toFixed(4)}
-
-TARGET:
-${data.target.toFixed(4)}
-
-5 MA:
-${data.ma5.toFixed(4)}
-
-15 MA:
-${data.ma15.toFixed(4)}
-
-30 MA:
-${data.ma30.toFixed(4)}
-
-5 MA SLOPE:
-${data.ma5slope.toFixed(4)}%
-
-15 MA SLOPE:
-${data.ma15slope.toFixed(4)}%
-
-30 MA SLOPE:
-${data.ma30slope.toFixed(4)}%
-
-FINAL PREDICT:
-${data.predict.toFixed(4)}%
-`;
-    }
-}
-
-async function loadCoin(side){
-
-    const input =
-    document.getElementById(
-        `${side}Input`
-    );
-
-    const symbol =
-    input.value
-    .toUpperCase()
-    .trim();
+async function fetchCoin(symbol){
 
     try{
 
@@ -220,100 +42,17 @@ async function loadCoin(side){
             `/api/coin/${symbol}`
         );
 
-        const data =
-        await response.json();
-
-        if(side === "left"){
-
-            leftCache = data;
-
-        }else{
-
-            rightCache = data;
-        }
-
-        renderCoin(
-            side,
-            data
-        );
+        return await response.json();
 
     }catch(e){
 
-        console.log(e);
-
-        const cache =
-        side === "left"
-        ? leftCache
-        : rightCache;
-
-        if(cache){
-
-            renderCoin(
-                side,
-                cache
-            );
-        }
+        return {
+            error:e.toString()
+        };
     }
 }
 
-function renderMacro(data){
-
-    const macro =
-    document.getElementById(
-        "macroArea"
-    );
-
-    if(!macro){
-
-        return;
-    }
-
-    macro.innerHTML =
-`
-<div class="macro-main-title">
-BTC 宏觀方向（4-24H）
-</div>
-
-<div class="macro-status-row">
-
-<span class="macro-dot">
-${data.icon}
-</span>
-
-<span class="macro-status">
-${data.status}
-</span>
-
-</div>
-
-<div class="macro-price">
-BTC:
-${data.btc.toFixed(2)}
-</div>
-
-<div class="macro-price">
-ETH:
-${data.eth.toFixed(2)}
-</div>
-
-<div class="macro-price">
-BTC 24H CHANGE:
-${data.btcChange}
-</div>
-
-<div class="macro-price">
-BTC VOLUME:
-${data.btcVolume}
-</div>
-
-<div class="macro-price">
-HK UPDATE:
-${data.updateTime}
-</div>
-`;
-}
-
-async function loadMacro(){
+async function fetchMacro(){
 
     try{
 
@@ -322,79 +61,297 @@ async function loadMacro(){
             "/api/macro"
         );
 
-        const data =
-        await response.json();
-
-        macroCache = data;
-
-        renderMacro(data);
+        return await response.json();
 
     }catch(e){
 
-        console.log(e);
-
-        if(macroCache){
-
-            renderMacro(
-                macroCache
-            );
-        }
+        return {
+            error:e.toString()
+        };
     }
 }
 
-function updateHKTime(){
-
-    const now =
-    new Date();
-
-    const hk =
-    now.toLocaleString(
-        "en-US",
-        {
-            timeZone:
-            "Asia/Hong_Kong"
-        }
-    );
+function setText(id,text){
 
     const el =
-    document.getElementById(
-        "updateTime"
-    );
+    document.getElementById(id);
 
     if(el){
 
-        el.textContent =
-        `HK UPDATE TIME : ${hk}`;
+        el.innerText = text;
     }
 }
 
-function startSystem(){
+function setHTML(id,html){
 
-    updateHKTime();
+    const el =
+    document.getElementById(id);
 
-    loadCoin("left");
+    if(el){
 
-    loadCoin("right");
+        el.innerHTML = html;
+    }
+}
 
-    loadMacro();
+function predictColor(value){
 
-    setInterval(
-        updateHKTime,
-        1000
-    );
+    if(value > 0){
 
-    setInterval(()=>{
+        return "#00ff99";
+    }
 
-        loadCoin("left");
+    if(value < 0){
 
-        loadCoin("right");
+        return "#ff4d6d";
+    }
 
-    },15000);
+    return "#ffffff";
+}
 
-    setInterval(
-        loadMacro,
-        45000
+function updateCoinCard(side,data){
+
+    if(!data || data.error){
+
+        setText(
+            `${side}-card`,
+            "LOAD FAIL"
+        );
+
+        return;
+    }
+
+    const predict =
+    parseFloat(data.predict);
+
+    const color =
+    predictColor(predict);
+
+    const html = `
+
+<div class="coin-box">
+
+<div class="coin-title">
+${data.symbol}USDT
+</div>
+
+<div class="coin-price">
+${Number(data.price).toFixed(4)}
+</div>
+
+<div class="coin-target">
+TARGET:
+${Number(data.target).toFixed(4)}
+</div>
+
+<div class="coin-ma">
+5 MA:
+${Number(data.ma5).toFixed(4)}
+</div>
+
+<div class="coin-ma">
+15 MA:
+${Number(data.ma15).toFixed(4)}
+</div>
+
+<div class="coin-ma">
+30 MA:
+${Number(data.ma30).toFixed(4)}
+</div>
+
+<div class="coin-ma">
+5 MA SLOPE:
+${Number(data.ma5slope).toFixed(4)}%
+</div>
+
+<div class="coin-ma">
+15 MA SLOPE:
+${Number(data.ma15slope).toFixed(4)}%
+</div>
+
+<div class="coin-ma">
+30 MA SLOPE:
+${Number(data.ma30slope).toFixed(4)}%
+</div>
+
+<div 
+class="predict"
+style="color:${color}"
+>
+FINAL PREDICT:
+${Number(data.predict).toFixed(4)}%
+</div>
+
+</div>
+
+`;
+
+    setHTML(
+        `${side}-card`,
+        html
     );
 }
 
-startSystem();
+function updateMacro(data){
+
+    if(!data || data.error){
+
+        setHTML(
+            "macro-card",
+            `
+<div class="macro-box">
+MACRO LOAD FAIL
+</div>
+`
+        );
+
+        return;
+    }
+
+    const html = `
+
+<div class="macro-box">
+
+<div class="macro-title">
+BTC 宏觀方向（4-24H）
+</div>
+
+<div class="macro-status">
+${data.icon}
+${data.status}
+</div>
+
+<div class="macro-item">
+BTC:
+${data.btc}
+</div>
+
+<div class="macro-item">
+ETH:
+${data.eth}
+</div>
+
+<div class="macro-item">
+TOTAL MARKET:
+${data.totalCap}
+</div>
+
+<div class="macro-item">
+BTC DOM:
+${data.btcDom}
+</div>
+
+<div class="macro-item">
+FEAR & GREED:
+${data.fear}
+ (${data.fearText})
+</div>
+
+<div class="macro-item">
+HK UPDATE:
+${data.updateTime}
+</div>
+
+</div>
+
+`;
+
+    setHTML(
+        "macro-card",
+        html
+    );
+}
+
+async function loadLeftCoin(){
+
+    const symbol =
+    document
+    .getElementById("left-input")
+    .value
+    .trim()
+    .toUpperCase();
+
+    setText(
+        "left-card",
+        "Loading..."
+    );
+
+    const data =
+    await fetchCoin(symbol);
+
+    leftCache = data;
+
+    updateCoinCard(
+        "left",
+        data
+    );
+}
+
+async function loadRightCoin(){
+
+    const symbol =
+    document
+    .getElementById("right-input")
+    .value
+    .trim()
+    .toUpperCase();
+
+    setText(
+        "right-card",
+        "Loading..."
+    );
+
+    const data =
+    await fetchCoin(symbol);
+
+    rightCache = data;
+
+    updateCoinCard(
+        "right",
+        data
+    );
+}
+
+async function loadMacro(){
+
+    setText(
+        "macro-card",
+        "Loading..."
+    );
+
+    const data =
+    await fetchMacro();
+
+    macroCache = data;
+
+    updateMacro(data);
+}
+
+document
+.getElementById("left-load")
+.addEventListener(
+    "click",
+    loadLeftCoin
+);
+
+document
+.getElementById("right-load")
+.addEventListener(
+    "click",
+    loadRightCoin
+);
+
+loadLeftCoin();
+
+loadRightCoin();
+
+loadMacro();
+
+setInterval(()=>{
+
+    loadLeftCoin();
+
+    loadRightCoin();
+
+    loadMacro();
+
+},60000);
