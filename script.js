@@ -1,7 +1,7 @@
 async function getKlines(symbol){
 
     const url =
-    `https://api.allorigins.win/raw?url=https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
+    `https://corsproxy.io/?https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
 
     const response = await fetch(url);
 
@@ -112,15 +112,7 @@ function renderPredict(percent,id){
         html += createRow("1.5%", abs >= 1.5 ? 2 : 0,true);
         html += createRow("2%", abs >= 2 ? 3 : 0,true);
 
-        html += createRow("1%",0,false);
-        html += createRow("1.5%",0,false);
-        html += createRow("2%",0,false);
-
     }else{
-
-        html += createRow("1%",0,true);
-        html += createRow("1.5%",0,true);
-        html += createRow("2%",0,true);
 
         html += createRow("1%", abs >= 1 ? 1 : 0,false);
         html += createRow("1.5%", abs >= 1.5 ? 2 : 0,false);
@@ -204,25 +196,8 @@ async function loadCoin(side){
             `${side}Boxes`
         );
 
-        let predictText = "";
-
-        if(Math.abs(predict) < 0.08){
-
-            predictText =
-            "低勝算率";
-
-        }else{
-
-            predictText =
-            predict.toFixed(2) +
-            `% (Target: ` +
-            target.toFixed(4) +
-            `)`;
-
-        }
-
         predictArea.innerHTML =
-        `1-3H Prediction : ${predictText}`;
+        `1-3H Prediction : ${predict.toFixed(2)}%`;
 
         detailArea.innerHTML = `
 SYMBOL:
@@ -230,6 +205,9 @@ ${symbol}USDT
 
 PRICE:
 ${price.toFixed(4)}
+
+TARGET:
+${target.toFixed(4)}
 
 5 MA:
 ${ma5[ma5.length-1]?.toFixed(4)}
@@ -239,15 +217,6 @@ ${ma15[ma15.length-1]?.toFixed(4)}
 
 30 MA:
 ${ma30[ma30.length-1]?.toFixed(4)}
-
-5 MA SLOPE:
-${ma5slope.toFixed(4)}%
-
-15 MA SLOPE:
-${ma15slope.toFixed(4)}%
-
-30 MA SLOPE:
-${ma30slope.toFixed(4)}%
 
 FINAL PREDICT:
 ${predict.toFixed(4)}%
@@ -261,18 +230,10 @@ ${predict.toFixed(4)}%
         "LOAD ERROR";
 
         predictArea.innerHTML =
-        "Loading...";
+        "NETWORK ERROR";
 
         detailArea.innerHTML =
-        `
-API ERROR
-
-可能原因:
-1. 幣種不存在
-2. Binance限制
-3. 網絡問題
-4. CORS問題
-`;
+        JSON.stringify(e);
 
     }
 
@@ -304,7 +265,7 @@ async function loadMacro(){
 
         const btc =
         await fetch(
-        "https://api.allorigins.win/raw?url=https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+        "https://corsproxy.io/?https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
         );
 
         const btcJson =
@@ -313,48 +274,20 @@ async function loadMacro(){
         const btcPrice =
         parseFloat(btcJson.price);
 
-        const area =
-        document.getElementById("macroArea");
-
-        area.innerHTML = `
+        document.getElementById(
+            "macroArea"
+        ).innerHTML = `
 <div class="macro-title">
 BTC 宏觀方向（4-24H）
 </div>
 
 <div class="macro-score">
-🟡 宏觀方向：
-中性震盪 |
-SCORE: -1
+🟡 中性震盪
 </div>
 
 <div class="macro-info">
-BTC現價:
-${btcPrice.toFixed(2)} USDT
-</div>
-
-<div class="macro-info">
-美元指數(DXY):
-99.08 (-0.09%)
-</div>
-
-<div class="macro-info">
-道瓊斯:
-50628 (+0.33%)
-</div>
-
-<div class="macro-info">
-美債10年期:
-4.5%
-</div>
-
-<div class="macro-info">
-VIX恐慌指數:
-16.99
-</div>
-
-<div class="macro-info">
-黃金:
-4455
+BTC:
+${btcPrice.toFixed(2)}
 </div>
 `;
 
