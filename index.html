@@ -5,40 +5,55 @@
 
 <meta charset="UTF-8">
 
-<title>Crypto Monitor</title>
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0"
+/>
 
-<link rel="stylesheet" href="style.css">
+<title>
+Crypto Monitor
+</title>
+
+<link
+rel="stylesheet"
+href="style.css"
+/>
 
 </head>
 
 <body>
 
 <div class="main-title">
+
 DUAL COIN 1-3H AI PREDICTOR
+
 </div>
 
-<div class="update-time" id="updateTime">
-Loading HK Time...
+<div
+id="updateTime"
+class="update-time"
+>
+HK UPDATE TIME
 </div>
 
-<div class="container">
+<div class="main-container">
 
-<div class="panel">
+<div class="coin-panel">
 
 <div class="coin-title">
+
 LEFT COIN
+
 </div>
 
 <div class="input-row">
 
 <input
 id="leftInput"
-class="coin-input"
 value="TON"
->
+/>
 
 <button
-class="load-btn"
 onclick="loadCoin('left')"
 >
 LOAD
@@ -47,56 +62,50 @@ LOAD
 </div>
 
 <div
-class="price"
 id="leftPrice"
+class="price"
 >
-TONUSDT : Loading...
+Loading...
 </div>
 
 <div
-class="red-box-row"
-id="leftBoxes"
->
-
-<div class="red-box"></div>
-<div class="red-box"></div>
-<div class="red-box"></div>
-<div class="red-box"></div>
-
-</div>
-
-<div
-class="prediction"
 id="leftPrediction"
+class="prediction"
 >
-1-3H Prediction : Loading...
+Loading...
 </div>
 
 <div
-class="info-box"
+id="leftBoxes"
+class="predict-boxes"
+>
+</div>
+
+<div
 id="leftInfo"
+class="info"
 >
 Loading...
 </div>
 
 </div>
 
-<div class="panel">
+<div class="coin-panel">
 
 <div class="coin-title">
+
 RIGHT COIN
+
 </div>
 
 <div class="input-row">
 
 <input
 id="rightInput"
-class="coin-input"
 value="BTC"
->
+/>
 
 <button
-class="load-btn"
 onclick="loadCoin('right')"
 >
 LOAD
@@ -105,34 +114,28 @@ LOAD
 </div>
 
 <div
-class="price"
 id="rightPrice"
+class="price"
 >
-BTCUSDT : Loading...
+Loading...
 </div>
 
 <div
-class="red-box-row"
-id="rightBoxes"
->
-
-<div class="red-box"></div>
-<div class="red-box"></div>
-<div class="red-box"></div>
-<div class="red-box"></div>
-
-</div>
-
-<div
-class="prediction"
 id="rightPrediction"
+class="prediction"
 >
-1-3H Prediction : Loading...
+Loading...
 </div>
 
 <div
-class="info-box"
+id="rightBoxes"
+class="predict-boxes"
+>
+</div>
+
+<div
 id="rightInfo"
+class="info"
 >
 Loading...
 </div>
@@ -141,43 +144,14 @@ Loading...
 
 </div>
 
-<div id="macroArea"></div>
+<div
+id="macroArea"
+class="macro-panel"
+>
+Loading...
+</div>
 
 <script src="script.js"></script>
 
-<script>
-
-function updateHKTime(){
-
-    const now =
-    new Date();
-
-    const hk =
-    now.toLocaleString(
-        "en-US",
-        {
-            timeZone:"Asia/Hong_Kong"
-        }
-    );
-
-    document.getElementById(
-        "updateTime"
-    ).innerHTML =
-    "HK UPDATE TIME : " + hk;
-
-}
-
-updateHKTime();
-
-setInterval(updateHKTime,1000);
-
-loadCoin("left");
-loadCoin("right");
-
-</script>
-
-<script src="macro.js"></script>
-
 </body>
-
 </html>
