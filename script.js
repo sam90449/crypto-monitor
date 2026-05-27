@@ -6,7 +6,11 @@ async function getKlines(symbol){
     const response = await fetch(url);
 
     if(!response.ok){
-        throw new Error("NETWORK");
+
+        throw new Error(
+            "HTTP " + response.status
+        );
+
     }
 
     return await response.json();
@@ -134,7 +138,7 @@ async function loadCoin(side){
     document.getElementById(`${side}Input`);
 
     const symbol =
-    input.value.toUpperCase();
+    input.value.toUpperCase().trim();
 
     const priceArea =
     document.getElementById(`${side}Price`);
@@ -147,14 +151,41 @@ async function loadCoin(side){
 
     try{
 
+        priceArea.innerHTML =
+        "LOADING...";
+
+        predictArea.innerHTML =
+        "Loading...";
+
+        detailArea.innerHTML =
+        "Fetching data...";
+
         const klines =
         await getKlines(symbol);
+
+        if(!Array.isArray(klines)){
+
+            throw new Error("BAD DATA");
+
+        }
+
+        if(klines.length < 30){
+
+            throw new Error("NO KLINES");
+
+        }
 
         const closes =
         klines.map(k=>parseFloat(k[4]));
 
         const price =
         closes[closes.length-1];
+
+        if(isNaN(price)){
+
+            throw new Error("PRICE NaN");
+
+        }
 
         const ma5 =
         calcMA(closes,5);
@@ -181,6 +212,12 @@ async function loadCoin(side){
             ma30slope*0.2
         );
 
+        if(isNaN(predict)){
+
+            predict = 0;
+
+        }
+
         if(predict > 2){
             predict = 2;
         }
@@ -201,7 +238,7 @@ async function loadCoin(side){
         );
 
         predictArea.innerHTML =
-        `1-3H Prediction : ${predict.toFixed(2)}%`;
+        `1-3H Prediction : ${predict.toFixed(2)}% (Target: ${target.toFixed(4)})`;
 
         detailArea.innerHTML = `
 SYMBOL:
@@ -222,6 +259,15 @@ ${ma15[ma15.length-1]?.toFixed(4)}
 30 MA:
 ${ma30[ma30.length-1]?.toFixed(4)}
 
+5 MA SLOPE:
+${ma5slope.toFixed(4)}%
+
+15 MA SLOPE:
+${ma15slope.toFixed(4)}%
+
+30 MA SLOPE:
+${ma30slope.toFixed(4)}%
+
 FINAL PREDICT:
 ${predict.toFixed(4)}%
 `;
@@ -234,10 +280,13 @@ ${predict.toFixed(4)}%
         "LOAD ERROR";
 
         predictArea.innerHTML =
-        "NETWORK ERROR";
+        "API FAIL";
 
         detailArea.innerHTML =
-        e.toString();
+        `
+ERROR:
+${e.message}
+`;
 
     }
 
@@ -272,11 +321,25 @@ async function loadMacro(){
         "https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT"
         );
 
+        if(!response.ok){
+
+            throw new Error(
+                "HTTP " + response.status
+            );
+
+        }
+
         const data =
         await response.json();
 
         const btcPrice =
         parseFloat(data.price);
+
+        if(isNaN(btcPrice)){
+
+            throw new Error("BTC NaN");
+
+        }
 
         document.getElementById(
             "macroArea"
@@ -298,6 +361,22 @@ ${btcPrice.toFixed(2)}
     }catch(e){
 
         console.log(e);
+
+        document.getElementById(
+            "macroArea"
+        ).innerHTML = `
+<div class="macro-title">
+BTC 宏觀方向（4-24H）
+</div>
+
+<div class="macro-score">
+❌ MACRO ERROR
+</div>
+
+<div class="macro-info">
+${e.message}
+</div>
+`;
 
     }
 
