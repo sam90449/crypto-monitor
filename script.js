@@ -68,7 +68,10 @@ function createBoxes(percent){
 function createRow(label,count,isUp){
 
     return `
-    <div class="predict-row">
+    <div class="
+    predict-row
+    ${isUp ? 'up-row' : 'down-row'}
+    ">
 
         <div class="
         predict-label
