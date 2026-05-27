@@ -1,68 +1,173 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Crypto Monitor</title>
 
-<style>
-body{
-    background:#111;
-    color:#00ff99;
-    font-family:Arial;
-    text-align:center;
-    padding-top:50px;
-}
+<link rel="stylesheet" href="style.css">
 
-.box{
-    background:#1b1b1b;
-    width:300px;
-    margin:auto;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 0 15px #00ff99;
-}
-
-.price{
-    font-size:40px;
-    margin-top:20px;
-}
-</style>
 </head>
 
 <body>
 
-<div class="box">
+<div class="main-title">
+DUAL COIN 1-3H AI PREDICTOR
+</div>
 
-<h1>BTCUSDT</h1>
+<div class="update-time" id="updateTime">
+Loading HK Time...
+</div>
 
-<div class="price" id="price">
+<div class="container">
+
+<div class="panel">
+
+<div class="coin-title">
+LEFT COIN
+</div>
+
+<div class="input-row">
+
+<input
+id="leftInput"
+class="coin-input"
+value="TON"
+>
+
+<button
+class="load-btn"
+onclick="loadCoin('left')"
+>
+LOAD
+</button>
+
+</div>
+
+<div
+class="price"
+id="leftPrice"
+>
+TONUSDT : Loading...
+</div>
+
+<div class="red-box-row">
+
+<div class="red-box"></div>
+<div class="red-box"></div>
+<div class="red-box"></div>
+<div class="red-box"></div>
+
+</div>
+
+<div
+class="prediction"
+id="leftPrediction"
+>
+1-3H Prediction : Loading...
+</div>
+
+<div
+class="info-box"
+id="leftInfo"
+>
 Loading...
 </div>
 
 </div>
 
+<div class="panel">
+
+<div class="coin-title">
+RIGHT COIN
+</div>
+
+<div class="input-row">
+
+<input
+id="rightInput"
+class="coin-input"
+value="BTC"
+>
+
+<button
+class="load-btn"
+onclick="loadCoin('right')"
+>
+LOAD
+</button>
+
+</div>
+
+<div
+class="price"
+id="rightPrice"
+>
+BTCUSDT : Loading...
+</div>
+
+<div class="red-box-row">
+
+<div class="red-box"></div>
+<div class="red-box"></div>
+<div class="red-box"></div>
+<div class="red-box"></div>
+
+</div>
+
+<div
+class="prediction"
+id="rightPrediction"
+>
+1-3H Prediction : Loading...
+</div>
+
+<div
+class="info-box"
+id="rightInfo"
+>
+Loading...
+</div>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
+
 <script>
 
-async function loadPrice(){
+function updateHKTime(){
 
-    const url =
-    "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+    const now =
+    new Date();
 
-    const response = await fetch(url);
+    const hk =
+    now.toLocaleString(
+    "en-US",
+    {
+        timeZone:"Asia/Hong_Kong"
+    }
+    );
 
-    const data = await response.json();
-
-    document.getElementById("price").innerHTML =
-    parseFloat(data.price).toFixed(2);
+    document.getElementById(
+    "updateTime"
+    ).innerHTML =
+    "HK UPDATE TIME : " + hk;
 
 }
 
-loadPrice();
+updateHKTime();
 
-setInterval(loadPrice,5000);
+setInterval(updateHKTime,1000);
+
+loadCoin("left");
+loadCoin("right");
 
 </script>
 
 </body>
+
 </html>
