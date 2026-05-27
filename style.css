@@ -1,143 +1,230 @@
-.predict-line{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-top:14px;
+body{
+
+    margin:0;
+    padding:20px;
+    background:#101418;
+    color:#ffffff;
+    font-family:Arial;
 }
 
-.predict-left{
-    width:120px;
-    font-size:22px;
+.main-title{
+
+    font-size:32px;
     font-weight:bold;
-    text-align:left;
-    line-height:1.1;
+    margin-bottom:10px;
 }
 
-.predict-right{
+.update-time{
+
+    font-size:18px;
+    color:#aaaaaa;
+    margin-bottom:30px;
+}
+
+.main-container{
+
     display:flex;
-    gap:12px;
+    gap:30px;
+    flex-wrap:wrap;
 }
 
-.predict-square{
-    width:42px;
-    height:42px;
-    border:2px solid #666;
+.coin-panel{
+
+    flex:1;
+    min-width:420px;
+
+    background:#1a2028;
+
+    border-radius:12px;
+
+    padding:20px;
+
     box-sizing:border-box;
 }
 
+.coin-title{
+
+    font-size:28px;
+    font-weight:bold;
+
+    margin-bottom:20px;
+}
+
+.input-row{
+
+    display:flex;
+    gap:10px;
+
+    margin-bottom:20px;
+}
+
+input{
+
+    background:#000000;
+
+    color:#00ff99;
+
+    border:1px solid #555;
+
+    font-size:22px;
+
+    padding:10px;
+
+    width:180px;
+}
+
+button{
+
+    background:#00aa66;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 20px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    border-radius:6px;
+}
+
+.price{
+
+    font-size:32px;
+
+    color:#00ff99;
+
+    margin-bottom:20px;
+}
+
+.prediction{
+
+    font-size:24px;
+
+    margin-bottom:20px;
+}
+
+.predict-boxes{
+
+    margin-bottom:25px;
+}
+
+.predict-line{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:14px;
+}
+
+.predict-left{
+
+    width:100px;
+
+    font-size:28px;
+
+    font-weight:bold;
+}
+
+.predict-right{
+
+    display:flex;
+
+    gap:10px;
+}
+
+.predict-square{
+
+    width:36px;
+    height:36px;
+
+    border:2px solid #666;
+}
+
 .green-box{
-    background:#00ffae;
-    border-color:#00ffae;
-    box-shadow:
-    0 0 10px #00ffae,
-    0 0 18px #00ffae;
+
+    background:#00ff66;
 }
 
 .red-box{
-    background:#ff2a6d;
-    border-color:#ff2a6d;
-    box-shadow:
-    0 0 10px #ff2a6d,
-    0 0 18px #ff2a6d;
+
+    background:#ff2255;
 }
 
 .up-text{
-    color:#00ffae;
+
+    color:#00ff66;
 }
 
 .down-text{
-    color:#ff2a6d;
+
+    color:#ff3366;
 }
 
-#leftPrediction,
-#rightPrediction{
-    margin-top:18px;
-    font-size:28px;
-    font-weight:bold;
-    color:#ffffff;
-    text-align:center;
-}
+.info{
 
-#leftInfo,
-#rightInfo{
-    margin-top:18px;
-    font-size:15px;
-    line-height:1.55;
-    color:#cccccc;
-    text-align:center;
     white-space:pre-line;
+
+    color:#dddddd;
+
+    font-size:18px;
+
+    line-height:1.8;
+}
+
+.macro-panel{
+
+    margin-top:30px;
+
+    background:#1a2028;
+
+    border-radius:12px;
+
+    padding:25px;
 }
 
 .macro-main-title{
-    font-size:72px;
-    color:#00f7ff;
-    text-align:center;
+
+    font-size:32px;
+
     font-weight:bold;
-    margin-top:40px;
+
+    margin-bottom:20px;
 }
 
 .macro-status-row{
-    margin-top:30px;
-    text-align:center;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    margin-bottom:25px;
 }
 
 .macro-dot{
-    font-size:64px;
-    vertical-align:middle;
+
+    font-size:42px;
 }
 
 .macro-status{
-    font-size:64px;
+
+    font-size:32px;
+
     font-weight:bold;
-    color:#ffee00;
-    vertical-align:middle;
-    margin-left:12px;
 }
 
 .macro-price{
-    margin-top:16px;
-    text-align:center;
-    color:#ffffff;
-    font-size:34px;
-}
 
-@media(max-width:900px){
+    font-size:24px;
 
-    .predict-left{
-        width:88px;
-        font-size:14px;
-    }
+    margin-bottom:15px;
 
-    .predict-square{
-        width:26px;
-        height:26px;
-    }
-
-    #leftPrediction,
-    #rightPrediction{
-        font-size:16px;
-    }
-
-    #leftInfo,
-    #rightInfo{
-        font-size:11px;
-    }
-
-    .macro-main-title{
-        font-size:34px;
-    }
-
-    .macro-status{
-        font-size:34px;
-    }
-
-    .macro-dot{
-        font-size:34px;
-    }
-
-    .macro-price{
-        font-size:18px;
-    }
-
+    color:#dddddd;
 }
