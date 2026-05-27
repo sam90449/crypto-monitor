@@ -49,15 +49,18 @@ function slope(values){
     return ((last-first)/first)*100;
 }
 
-function createBoxes(percent){
+function createBoxes(count,isUp){
 
     let html = "";
 
     for(let i=0;i<4;i++){
 
         html += `
-        <div class="predict-box
-        ${i < percent ? 'active' : ''}">
+        <div class="
+        predict-box
+        ${i < count ? 'active' : ''}
+        ${isUp ? 'green' : 'red'}
+        ">
         </div>
         `;
     }
@@ -84,7 +87,7 @@ function createRow(label,count,isUp){
 
         <div class="predict-boxes">
 
-        ${createBoxes(count)}
+            ${createBoxes(count,isUp)}
 
         </div>
 
@@ -138,9 +141,6 @@ async function loadCoin(side){
 
     const detailArea =
     document.getElementById(`${side}Detail`);
-
-    const boxArea =
-    document.getElementById(`${side}Boxes`);
 
     try{
 
@@ -207,14 +207,15 @@ async function loadCoin(side){
         }else{
 
             predictText =
-            `${predict.toFixed(2)}%
-            (Target:
-            ${target.toFixed(4)})`;
+            predict.toFixed(2) +
+            "% (Target: " +
+            target.toFixed(4) +
+            ")";
         }
 
         predictArea.innerHTML =
-        `1-3H Prediction :
-        ${predictText}`;
+        "1-3H Prediction : " +
+        predictText;
 
         detailArea.innerHTML =
 `
@@ -252,7 +253,7 @@ ${predict.toFixed(4)}%
         "LOAD ERROR";
 
         predictArea.innerHTML =
-        "";
+        "Loading...";
 
         detailArea.innerHTML =
         e;
@@ -303,10 +304,8 @@ BTC 宏觀方向（4-24H）
 
 <div class="macro-score">
 🟡 宏觀方向：
-中性震盪
-|
-SCORE:
--1
+中性震盪 |
+SCORE: -1
 </div>
 
 <div class="macro-info">
@@ -317,14 +316,12 @@ USDT
 
 <div class="macro-info">
 美元指數(DXY):
-99.08
-(-0.09%)
+99.08 (-0.09%)
 </div>
 
 <div class="macro-info">
 道瓊斯:
-50628
-(+0.33%)
+50628 (+0.33%)
 </div>
 
 <div class="macro-info">
@@ -352,8 +349,11 @@ VIX恐慌指數:
 setInterval(updateHKTime,1000);
 
 setInterval(()=>{
+
     loadCoin("left");
+
     loadCoin("right");
+
 },5000);
 
 setInterval(loadMacro,10000);
