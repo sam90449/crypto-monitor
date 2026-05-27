@@ -1,9 +1,13 @@
 async function getKlines(symbol){
 
     const url =
-    `https://corsproxy.io/?https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
+    `https://data-api.binance.vision/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
 
     const response = await fetch(url);
+
+    if(!response.ok){
+        throw new Error("NETWORK");
+    }
 
     return await response.json();
 
@@ -85,7 +89,7 @@ function createRow(label,count,isUp){
         ${isUp ? 'up' : 'down'}
         ">
 
-            ${isUp ? '▲' : '▼'}${label}
+            ${isUp ? '▲' : '▼'} ${label}
 
         </div>
 
@@ -233,7 +237,7 @@ ${predict.toFixed(4)}%
         "NETWORK ERROR";
 
         detailArea.innerHTML =
-        JSON.stringify(e);
+        e.toString();
 
     }
 
@@ -263,16 +267,16 @@ async function loadMacro(){
 
     try{
 
-        const btc =
+        const response =
         await fetch(
-        "https://corsproxy.io/?https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+        "https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT"
         );
 
-        const btcJson =
-        await btc.json();
+        const data =
+        await response.json();
 
         const btcPrice =
-        parseFloat(btcJson.price);
+        parseFloat(data.price);
 
         document.getElementById(
             "macroArea"
