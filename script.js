@@ -8,74 +8,54 @@ async function safeFetch(url, retry = 3) {
 
         try {
 
-            const response = await fetch(url + "?t=" + Date.now(), {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                },
-                cache: "no-store"
-            });
+            const response = await fetch(
+                `${url}?t=${Date.now()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                }
+            );
 
-            if (response.ok) {
-                return response;
+            const text = await response.text();
+
+            try {
+
+                return JSON.parse(text);
+
+            } catch (e) {
+
+                console.log("JSON PARSE ERROR:", text);
+
+                throw e;
             }
 
         } catch (e) {
 
-            console.log(e);
-        }
+            console.log("FETCH ERROR:", e);
 
-        await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000));
+        }
     }
 
-    throw new Error("FETCH FAIL");
+    return {
+        error: "FETCH FAIL"
+    };
 }
 
 async function fetchCoin(symbol) {
 
-    try {
-
-        const response =
-            await safeFetch(`/api/coin/${symbol}`);
-
-        return await response.json();
-
-    } catch (e) {
-
-        console.log(e);
-
-        return {
-            error: e.toString()
-        };
-    }
+    return await safeFetch(
+        `/api/coin/${symbol}`
+    );
 }
 
 async function fetchMacro() {
 
-    try {
-
-        const response =
-            await safeFetch(`/api/macro`);
-
-        return await response.json();
-
-    } catch (e) {
-
-        console.log(e);
-
-        return {
-            error: e.toString()
-        };
-    }
-}
-
-function setText(id, text) {
-
-    const el = document.getElementById(id);
-
-    if (el) {
-        el.innerText = text;
-    }
+    return await safeFetch(
+        `/api/macro`
+    );
 }
 
 function predictColor(value) {
@@ -104,7 +84,7 @@ function buildCoinHTML(data) {
 <div class="coin-box">
 
 <div class="coin-symbol">
-${data.symbol}USDT
+${data.symbol || "-"}USDT
 </div>
 
 <div class="coin-price">
@@ -172,10 +152,15 @@ function updateCoinCard(side, data) {
     if (!data || data.error) {
 
         card.innerHTML = `
-<div style="color:#ff5577">
+<div style="
+color:#ff5577;
+font-size:24px;
+">
 LOAD FAIL
 </div>
 `;
+
+        console.log("COIN ERROR:", data);
 
         return;
     }
@@ -196,10 +181,15 @@ function updateMacro(data) {
     if (!data || data.error) {
 
         card.innerHTML = `
-<div style="color:#ff5577">
+<div style="
+color:#ff5577;
+font-size:24px;
+">
 MACRO LOAD FAIL
 </div>
 `;
+
+        console.log("MACRO ERROR:", data);
 
         return;
     }
@@ -214,27 +204,27 @@ BTC 宏觀方向（4-24H）
 
 <div class="macro-status">
 ${data.icon || "⚪"}
-${data.status || "等待中"}
+${data.status || "-"}
 </div>
 
 <div class="macro-item">
 BTC:
-${data.btc || "0"}
+${data.btc || "-"}
 </div>
 
 <div class="macro-item">
 ETH:
-${data.eth || "0"}
+${data.eth || "-"}
 </div>
 
 <div class="macro-item">
 BTC 24H CHANGE:
-${data.btcChange || "0%"}
+${data.btcChange || "-"}
 </div>
 
 <div class="macro-item">
 BTC VOLUME:
-${data.btcVolume || "0"}
+${data.btcVolume || "-"}
 </div>
 
 <div class="macro-item">
@@ -256,8 +246,10 @@ async function loadLeftCoin() {
             .trim()
             .toUpperCase();
 
-    document.getElementById("left-card").innerHTML =
-        "Loading...";
+    const card =
+        document.getElementById("left-card");
+
+    card.innerHTML = "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -279,8 +271,10 @@ async function loadRightCoin() {
             .trim()
             .toUpperCase();
 
-    document.getElementById("right-card").innerHTML =
-        "Loading...";
+    const card =
+        document.getElementById("right-card");
+
+    card.innerHTML = "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -295,8 +289,10 @@ async function loadRightCoin() {
 
 async function loadMacro() {
 
-    document.getElementById("macro-card").innerHTML =
-        "Loading...";
+    const card =
+        document.getElementById("macro-card");
+
+    card.innerHTML = "Loading...";
 
     const data =
         await fetchMacro();
@@ -310,45 +306,39 @@ document
     .getElementById("left-load")
     .addEventListener(
         "click",
-        loadLeftCoin
+        async () => {
+
+            await loadLeftCoin();
+        }
     );
 
 document
     .getElementById("right-load")
     .addEventListener(
         "click",
-        loadRightCoin
+        async () => {
+
+            await loadRightCoin();
+        }
     );
 
-window.addEventListener("load", async () => {
+window.onload = async function () {
 
-    try {
+    console.log("SCRIPT START");
 
-        await loadLeftCoin();
+    await loadLeftCoin();
 
-        await loadRightCoin();
+    await loadRightCoin();
 
-        await loadMacro();
-
-    } catch (e) {
-
-        console.log(e);
-    }
-});
+    await loadMacro();
+};
 
 setInterval(async () => {
 
-    try {
+    await loadLeftCoin();
 
-        await loadLeftCoin();
+    await loadRightCoin();
 
-        await loadRightCoin();
-
-        await loadMacro();
-
-    } catch (e) {
-
-        console.log(e);
-    }
+    await loadMacro();
 
 }, 60000);
