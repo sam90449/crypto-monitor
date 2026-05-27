@@ -2,46 +2,34 @@ let leftCache = null;
 let rightCache = null;
 let macroCache = null;
 
-async function safeFetch(url, retry = 3) {
+async function safeFetch(url) {
 
-    for (let i = 0; i < retry; i++) {
+    try {
 
-        try {
-
-            const response = await fetch(
-                `${url}?t=${Date.now()}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json"
-                    }
-                }
-            );
-
-            const text = await response.text();
-
-            try {
-
-                return JSON.parse(text);
-
-            } catch (e) {
-
-                console.log("JSON PARSE ERROR:", text);
-
-                throw e;
+        const response = await fetch(
+            `${url}?t=${Date.now()}`,
+            {
+                method: "GET"
             }
+        );
 
-        } catch (e) {
+        if (!response.ok) {
 
-            console.log("FETCH ERROR:", e);
-
-            await new Promise(r => setTimeout(r, 1000));
+            return {
+                error: "HTTP ERROR"
+            };
         }
-    }
 
-    return {
-        error: "FETCH FAIL"
-    };
+        return await response.json();
+
+    } catch (e) {
+
+        console.log(e);
+
+        return {
+            error: e.toString()
+        };
+    }
 }
 
 async function fetchCoin(symbol) {
@@ -71,75 +59,6 @@ function predictColor(value) {
     return "#ffffff";
 }
 
-function buildCoinHTML(data) {
-
-    const predict =
-        Number(data.predict || 0);
-
-    const color =
-        predictColor(predict);
-
-    return `
-
-<div class="coin-box">
-
-<div class="coin-symbol">
-${data.symbol || "-"}USDT
-</div>
-
-<div class="coin-price">
-PRICE:
-${Number(data.price || 0).toFixed(4)}
-</div>
-
-<div class="coin-target">
-TARGET:
-${Number(data.target || 0).toFixed(4)}
-</div>
-
-<div class="coin-ma">
-5 MA:
-${Number(data.ma5 || 0).toFixed(4)}
-</div>
-
-<div class="coin-ma">
-15 MA:
-${Number(data.ma15 || 0).toFixed(4)}
-</div>
-
-<div class="coin-ma">
-30 MA:
-${Number(data.ma30 || 0).toFixed(4)}
-</div>
-
-<div class="coin-ma">
-5 MA SLOPE:
-${Number(data.ma5slope || 0).toFixed(4)}%
-</div>
-
-<div class="coin-ma">
-15 MA SLOPE:
-${Number(data.ma15slope || 0).toFixed(4)}%
-</div>
-
-<div class="coin-ma">
-30 MA SLOPE:
-${Number(data.ma30slope || 0).toFixed(4)}%
-</div>
-
-<div 
-class="coin-predict"
-style="color:${color}"
->
-FINAL PREDICT:
-${predict.toFixed(4)}%
-</div>
-
-</div>
-
-`;
-}
-
 function updateCoinCard(side, data) {
 
     const card =
@@ -152,21 +71,106 @@ function updateCoinCard(side, data) {
     if (!data || data.error) {
 
         card.innerHTML = `
+
 <div style="
 color:#ff5577;
-font-size:24px;
+font-size:28px;
+font-weight:bold;
 ">
 LOAD FAIL
 </div>
+
 `;
 
-        console.log("COIN ERROR:", data);
+        console.log(data);
 
         return;
     }
 
-    card.innerHTML =
-        buildCoinHTML(data);
+    const predict =
+        Number(data.predict || 0);
+
+    const color =
+        predictColor(predict);
+
+    card.innerHTML = `
+
+<div class="coin-box">
+
+<div class="coin-symbol">
+${data.symbol}USDT
+</div>
+
+<br>
+
+<div>
+PRICE:
+${Number(data.price).toFixed(4)}
+</div>
+
+<br>
+
+<div>
+TARGET:
+${Number(data.target).toFixed(4)}
+</div>
+
+<br>
+
+<div>
+5 MA:
+${Number(data.ma5).toFixed(4)}
+</div>
+
+<br>
+
+<div>
+15 MA:
+${Number(data.ma15).toFixed(4)}
+</div>
+
+<br>
+
+<div>
+30 MA:
+${Number(data.ma30).toFixed(4)}
+</div>
+
+<br>
+
+<div>
+5 MA SLOPE:
+${Number(data.ma5slope).toFixed(4)}%
+</div>
+
+<br>
+
+<div>
+15 MA SLOPE:
+${Number(data.ma15slope).toFixed(4)}%
+</div>
+
+<br>
+
+<div>
+30 MA SLOPE:
+${Number(data.ma30slope).toFixed(4)}%
+</div>
+
+<br>
+
+<div style="
+color:${color};
+font-size:26px;
+font-weight:bold;
+">
+FINAL PREDICT:
+${predict.toFixed(4)}%
+</div>
+
+</div>
+
+`;
 }
 
 function updateMacro(data) {
@@ -181,15 +185,18 @@ function updateMacro(data) {
     if (!data || data.error) {
 
         card.innerHTML = `
+
 <div style="
 color:#ff5577;
-font-size:24px;
+font-size:28px;
+font-weight:bold;
 ">
 MACRO LOAD FAIL
 </div>
+
 `;
 
-        console.log("MACRO ERROR:", data);
+        console.log(data);
 
         return;
     }
@@ -198,38 +205,59 @@ MACRO LOAD FAIL
 
 <div class="macro-box">
 
-<div class="macro-title">
+<div style="
+font-size:40px;
+font-weight:bold;
+margin-bottom:25px;
+">
 BTC 宏觀方向（4-24H）
 </div>
 
-<div class="macro-status">
-${data.icon || "⚪"}
-${data.status || "-"}
+<div style="
+font-size:36px;
+margin-bottom:25px;
+">
+${data.icon}
+${data.status}
 </div>
 
-<div class="macro-item">
+<div style="
+font-size:30px;
+margin-bottom:18px;
+">
 BTC:
-${data.btc || "-"}
+${data.btc}
 </div>
 
-<div class="macro-item">
+<div style="
+font-size:30px;
+margin-bottom:18px;
+">
 ETH:
-${data.eth || "-"}
+${data.eth}
 </div>
 
-<div class="macro-item">
+<div style="
+font-size:30px;
+margin-bottom:18px;
+">
 BTC 24H CHANGE:
-${data.btcChange || "-"}
+${data.btcChange}
 </div>
 
-<div class="macro-item">
+<div style="
+font-size:30px;
+margin-bottom:18px;
+">
 BTC VOLUME:
-${data.btcVolume || "-"}
+${data.btcVolume}
 </div>
 
-<div class="macro-item">
+<div style="
+font-size:30px;
+">
 HK UPDATE:
-${data.updateTime || "-"}
+${data.updateTime}
 </div>
 
 </div>
@@ -246,10 +274,8 @@ async function loadLeftCoin() {
             .trim()
             .toUpperCase();
 
-    const card =
-        document.getElementById("left-card");
-
-    card.innerHTML = "Loading...";
+    document.getElementById("left-card").innerHTML =
+        "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -271,10 +297,8 @@ async function loadRightCoin() {
             .trim()
             .toUpperCase();
 
-    const card =
-        document.getElementById("right-card");
-
-    card.innerHTML = "Loading...";
+    document.getElementById("right-card").innerHTML =
+        "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -289,10 +313,8 @@ async function loadRightCoin() {
 
 async function loadMacro() {
 
-    const card =
-        document.getElementById("macro-card");
-
-    card.innerHTML = "Loading...";
+    document.getElementById("macro-card").innerHTML =
+        "Loading...";
 
     const data =
         await fetchMacro();
@@ -302,29 +324,9 @@ async function loadMacro() {
     updateMacro(data);
 }
 
-document
-    .getElementById("left-load")
-    .addEventListener(
-        "click",
-        async () => {
+window.onload = async () => {
 
-            await loadLeftCoin();
-        }
-    );
-
-document
-    .getElementById("right-load")
-    .addEventListener(
-        "click",
-        async () => {
-
-            await loadRightCoin();
-        }
-    );
-
-window.onload = async function () {
-
-    console.log("SCRIPT START");
+    console.log("START");
 
     await loadLeftCoin();
 
@@ -332,6 +334,20 @@ window.onload = async function () {
 
     await loadMacro();
 };
+
+document
+    .getElementById("left-load")
+    .onclick = async () => {
+
+        await loadLeftCoin();
+    };
+
+document
+    .getElementById("right-load")
+    .onclick = async () => {
+
+        await loadRightCoin();
+    };
 
 setInterval(async () => {
 
