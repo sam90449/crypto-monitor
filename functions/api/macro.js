@@ -27,40 +27,33 @@ export async function onRequest(){
 
         const btcData =
         await getJson(
-"https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+"https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
         );
 
         const ethData =
         await getJson(
-"https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT"
-        );
-
-        const globalData =
-        await getJson(
-"https://api.coingecko.com/api/v3/global"
+"https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT"
         );
 
         const btcPrice =
         parseFloat(
-            btcData.price
+            btcData.lastPrice
         );
 
         const ethPrice =
         parseFloat(
-            ethData.price
+            ethData.lastPrice
         );
 
-        const marketCap =
-        globalData
-        .data
-        .total_market_cap
-        .usd;
+        const btcVolume =
+        parseFloat(
+            btcData.quoteVolume
+        );
 
-        const btcDom =
-        globalData
-        .data
-        .market_cap_percentage
-        .btc;
+        const btcChange =
+        parseFloat(
+            btcData.priceChangePercent
+        );
 
         let status =
         "中性震盪";
@@ -68,7 +61,7 @@ export async function onRequest(){
         let icon =
         "🟡";
 
-        if(btcPrice > 90000){
+        if(btcChange >= 2){
 
             status =
             "強勢偏多";
@@ -77,7 +70,7 @@ export async function onRequest(){
             "🟢";
         }
 
-        if(btcPrice < 65000){
+        if(btcChange <= -2){
 
             status =
             "偏弱震盪";
@@ -94,16 +87,15 @@ export async function onRequest(){
             eth:
             ethPrice,
 
-            marketCap:
-            "~" +
+            btcVolume:
             (
-                marketCap /
-                1000000000000
+                btcVolume /
+                1000000000
             ).toFixed(2)
-            + "T",
+            + "B",
 
-            btcDom:
-            btcDom.toFixed(2)
+            btcChange:
+            btcChange.toFixed(2)
             + "%",
 
             status,
