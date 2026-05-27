@@ -144,11 +144,10 @@ async function loadCoin(side){
     document.getElementById(`${side}Price`);
 
     const predictArea =
-    document.getElementById(`${side}Predict`);
+    document.getElementById(`${side}Prediction`);
 
     const detailArea =
-    document.getElementById(`${side}Detail`);
-
+    document.getElementById(`${side}Info`);
     try{
 
         priceArea.innerHTML =
