@@ -297,13 +297,13 @@ ${data.eth.toFixed(2)}
 </div>
 
 <div class="macro-price">
-TOTAL MARKET:
-${data.marketCap}
+BTC 24H CHANGE:
+${data.btcChange}
 </div>
 
 <div class="macro-price">
-BTC DOM:
-${data.btcDom}
+BTC VOLUME:
+${data.btcVolume}
 </div>
 
 <div class="macro-price">
