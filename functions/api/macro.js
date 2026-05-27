@@ -27,33 +27,55 @@ export async function onRequest(){
 
         const btcData =
         await getJson(
-"https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+"https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
         );
 
         const ethData =
         await getJson(
-"https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT"
+"https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT"
+        );
+
+        const fgData =
+        await getJson(
+"https://api.alternative.me/fng/"
+        );
+
+        const globalData =
+        await getJson(
+"https://api.alternative.me/v2/global/"
         );
 
         const btcPrice =
         parseFloat(
-            btcData.lastPrice
+            btcData.price
         );
 
         const ethPrice =
         parseFloat(
-            ethData.lastPrice
+            ethData.price
         );
 
-        const btcVolume =
-        parseFloat(
-            btcData.quoteVolume
-        );
+        const totalCap =
+        globalData
+        .data
+        .quotes
+        .USD
+        .total_market_cap;
 
-        const btcChange =
-        parseFloat(
-            btcData.priceChangePercent
-        );
+        const btcDom =
+        globalData
+        .data
+        .bitcoin_dominance_percentage;
+
+        const fear =
+        fgData
+        .data[0]
+        .value;
+
+        const fearText =
+        fgData
+        .data[0]
+        .value_classification;
 
         let status =
         "中性震盪";
@@ -61,19 +83,19 @@ export async function onRequest(){
         let icon =
         "🟡";
 
-        if(btcChange >= 2){
+        if(fear >= 65){
 
             status =
-            "強勢偏多";
+            "市場偏貪婪";
 
             icon =
             "🟢";
         }
 
-        if(btcChange <= -2){
+        if(fear <= 35){
 
             status =
-            "偏弱震盪";
+            "市場偏恐慌";
 
             icon =
             "🔴";
@@ -87,16 +109,22 @@ export async function onRequest(){
             eth:
             ethPrice,
 
-            btcVolume:
+            totalCap:
             (
-                btcVolume /
-                1000000000
+                totalCap /
+                1000000000000
             ).toFixed(2)
-            + "B",
+            + "T",
 
-            btcChange:
-            btcChange.toFixed(2)
+            btcDom:
+            btcDom.toFixed(2)
             + "%",
+
+            fear:
+            fear,
+
+            fearText:
+            fearText,
 
             status,
 
@@ -112,11 +140,6 @@ export async function onRequest(){
                 }
             )
 
-        },{
-            headers:{
-                "Access-Control-Allow-Origin":"*",
-                "Cache-Control":"no-store"
-            }
         });
 
     }catch(e){
