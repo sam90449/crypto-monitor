@@ -1,0 +1,111 @@
+body{
+    background:#000;
+    color:#fff;
+    font-family:Arial;
+    margin:0;
+    padding:0;
+}
+
+.main-title{
+    text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    margin-top:20px;
+    color:white;
+}
+
+.update-time{
+    text-align:center;
+    color:yellow;
+    font-size:18px;
+    margin-top:10px;
+}
+
+.container{
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    margin-top:20px;
+    flex-wrap:wrap;
+}
+
+.panel{
+    width:420px;
+    border:2px solid white;
+    padding:20px;
+    border-radius:15px;
+    background:#111;
+}
+
+.coin-title{
+    text-align:center;
+    font-size:26px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.input-row{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.coin-input{
+    width:120px;
+    background:black;
+    color:white;
+    border:1px solid white;
+    padding:10px;
+    font-size:18px;
+}
+
+.load-btn{
+    background:black;
+    color:white;
+    border:1px solid white;
+    padding:10px 20px;
+    font-size:18px;
+}
+
+.price{
+    text-align:center;
+    font-size:38px;
+    margin-top:20px;
+    font-weight:bold;
+}
+
+.prediction{
+    text-align:center;
+    font-size:24px;
+    margin-top:20px;
+    color:#00ff99;
+}
+
+.info-box{
+    margin-top:20px;
+    height:250px;
+    overflow-y:auto;
+    border:1px solid white;
+    padding:10px;
+    white-space:pre-wrap;
+    font-size:16px;
+    background:black;
+}
+
+.red-box-row{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-top:15px;
+}
+
+.red-box{
+    width:28px;
+    height:28px;
+    border:2px solid white;
+    background:black;
+}
+
+.red-fill{
+    background:red;
+}
