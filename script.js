@@ -2,7 +2,12 @@ let leftCache = null;
 let rightCache = null;
 let macroCache = null;
 
-async function safeFetch(url) {
+function getEl(id) {
+
+    return document.getElementById(id);
+}
+
+async function fetchJson(url) {
 
     try {
 
@@ -10,22 +15,21 @@ async function safeFetch(url) {
             `${url}?t=${Date.now()}`,
             {
                 method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
+                cache: "no-store"
             }
         );
 
         const text =
             await response.text();
 
-        console.log("RAW:", text);
+        console.log(url);
+        console.log(text);
 
         return JSON.parse(text);
 
     } catch (e) {
 
-        console.log("FETCH ERROR:", e);
+        console.log(e);
 
         return {
             error: e.toString()
@@ -33,23 +37,10 @@ async function safeFetch(url) {
     }
 }
 
-async function fetchCoin(symbol) {
+function toNum(v, d = 4) {
 
-    return await safeFetch(
-        `/api/coin/${symbol}`
-    );
-}
-
-async function fetchMacro() {
-
-    return await safeFetch(
-        `/api/macro`
-    );
-}
-
-function num(v, d = 4) {
-
-    const n = parseFloat(v);
+    const n =
+        parseFloat(v);
 
     if (isNaN(n)) {
 
@@ -61,7 +52,8 @@ function num(v, d = 4) {
 
 function predictColor(v) {
 
-    const n = parseFloat(v);
+    const n =
+        parseFloat(v);
 
     if (n > 0) {
         return "#00ff99";
@@ -74,18 +66,97 @@ function predictColor(v) {
     return "#ffffff";
 }
 
-function updateCoinCard(side, data) {
+function buildCoinHTML(data) {
+
+    const predict =
+        parseFloat(data.predict || 0);
+
+    return `
+
+<div style="
+font-size:34px;
+font-weight:bold;
+margin-bottom:20px;
+">
+${data.symbol || "-"}USDT
+</div>
+
+<div>
+PRICE:
+${toNum(data.price)}
+</div>
+
+<br>
+
+<div>
+TARGET:
+${toNum(data.target)}
+</div>
+
+<br>
+
+<div>
+5 MA:
+${toNum(data.ma5)}
+</div>
+
+<br>
+
+<div>
+15 MA:
+${toNum(data.ma15)}
+</div>
+
+<br>
+
+<div>
+30 MA:
+${toNum(data.ma30)}
+</div>
+
+<br>
+
+<div>
+5 MA SLOPE:
+${toNum(data.ma5slope)}%
+</div>
+
+<br>
+
+<div>
+15 MA SLOPE:
+${toNum(data.ma15slope)}%
+</div>
+
+<br>
+
+<div>
+30 MA SLOPE:
+${toNum(data.ma30slope)}%
+</div>
+
+<br>
+
+<div style="
+font-size:28px;
+font-weight:bold;
+color:${predictColor(predict)};
+">
+FINAL PREDICT:
+${toNum(predict)}%
+</div>
+
+`;
+}
+
+function updateCoin(side, data) {
 
     const card =
-        document.getElementById(
-            `${side}-card`
-        );
+        getEl(`${side}-card`);
 
     if (!card) {
         return;
     }
-
-    console.log("COIN DATA:", data);
 
     if (!data || data.error) {
 
@@ -104,133 +175,18 @@ LOAD FAIL
         return;
     }
 
-    const symbol =
-        data.symbol || "-";
-
-    const price =
-        num(data.price);
-
-    const target =
-        num(data.target);
-
-    const ma5 =
-        num(data.ma5);
-
-    const ma15 =
-        num(data.ma15);
-
-    const ma30 =
-        num(data.ma30);
-
-    const ma5slope =
-        num(data.ma5slope);
-
-    const ma15slope =
-        num(data.ma15slope);
-
-    const ma30slope =
-        num(data.ma30slope);
-
-    const predict =
-        num(data.predict);
-
-    const color =
-        predictColor(data.predict);
-
-    card.innerHTML = `
-
-<div class="coin-box">
-
-<div style="
-font-size:34px;
-font-weight:bold;
-margin-bottom:20px;
-">
-${symbol}USDT
-</div>
-
-<div>
-PRICE:
-${price}
-</div>
-
-<br>
-
-<div>
-TARGET:
-${target}
-</div>
-
-<br>
-
-<div>
-5 MA:
-${ma5}
-</div>
-
-<br>
-
-<div>
-15 MA:
-${ma15}
-</div>
-
-<br>
-
-<div>
-30 MA:
-${ma30}
-</div>
-
-<br>
-
-<div>
-5 MA SLOPE:
-${ma5slope}%
-</div>
-
-<br>
-
-<div>
-15 MA SLOPE:
-${ma15slope}%
-</div>
-
-<br>
-
-<div>
-30 MA SLOPE:
-${ma30slope}%
-</div>
-
-<br>
-
-<div style="
-font-size:30px;
-font-weight:bold;
-color:${color};
-">
-FINAL PREDICT:
-${predict}%
-</div>
-
-</div>
-
-`;
+    card.innerHTML =
+        buildCoinHTML(data);
 }
 
 function updateMacro(data) {
 
     const card =
-        document.getElementById(
-            "macro-card"
-        );
+        getEl("macro-card");
 
     if (!card) {
         return;
     }
-
-    console.log("MACRO DATA:", data);
 
     if (!data || data.error) {
 
@@ -238,7 +194,7 @@ function updateMacro(data) {
 
 <div style="
 color:#ff5577;
-font-size:32px;
+font-size:30px;
 font-weight:bold;
 ">
 MACRO LOAD FAIL
@@ -249,33 +205,10 @@ MACRO LOAD FAIL
         return;
     }
 
-    const btc =
-        num(data.btc, 2);
-
-    const eth =
-        num(data.eth, 2);
-
-    const btcChange =
-        data.btcChange || "-";
-
-    const btcVolume =
-        data.btcVolume || "-";
-
-    const status =
-        data.status || "-";
-
-    const icon =
-        data.icon || "⚪";
-
-    const updateTime =
-        data.updateTime || "-";
-
     card.innerHTML = `
 
-<div class="macro-box">
-
 <div style="
-font-size:40px;
+font-size:42px;
 font-weight:bold;
 margin-bottom:25px;
 ">
@@ -283,100 +216,98 @@ BTC 宏觀方向（4-24H）
 </div>
 
 <div style="
-font-size:36px;
+font-size:38px;
 margin-bottom:30px;
 ">
-${icon}
-${status}
+${data.icon || "⚪"}
+${data.status || "-"}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:20px;
+margin-bottom:18px;
 ">
 BTC:
-${btc}
+${toNum(data.btc,2)}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:20px;
+margin-bottom:18px;
 ">
 ETH:
-${eth}
+${toNum(data.eth,2)}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:20px;
+margin-bottom:18px;
 ">
 BTC 24H CHANGE:
-${btcChange}
+${data.btcChange || "-"}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:20px;
+margin-bottom:18px;
 ">
 BTC VOLUME:
-${btcVolume}
+${data.btcVolume || "-"}
 </div>
 
 <div style="
 font-size:30px;
 ">
 HK UPDATE:
-${updateTime}
-</div>
-
+${data.updateTime || "-"}
 </div>
 
 `;
 }
 
-async function loadLeftCoin() {
+async function loadLeft() {
 
     const symbol =
-        document
-            .getElementById("left-input")
-            .value
-            .trim()
-            .toUpperCase();
+        getEl("left-input")
+        .value
+        .trim()
+        .toUpperCase();
 
-    document.getElementById(
-        "left-card"
-    ).innerHTML = "Loading...";
+    getEl("left-card").innerHTML =
+        "Loading...";
 
     const data =
-        await fetchCoin(symbol);
+        await fetchJson(
+            `/api/coin/${symbol}`
+        );
 
     leftCache = data;
 
-    updateCoinCard(
+    updateCoin(
         "left",
         data
     );
 }
 
-async function loadRightCoin() {
+async function loadRight() {
 
     const symbol =
-        document
-            .getElementById("right-input")
-            .value
-            .trim()
-            .toUpperCase();
+        getEl("right-input")
+        .value
+        .trim()
+        .toUpperCase();
 
-    document.getElementById(
-        "right-card"
-    ).innerHTML = "Loading...";
+    getEl("right-card").innerHTML =
+        "Loading...";
 
     const data =
-        await fetchCoin(symbol);
+        await fetchJson(
+            `/api/coin/${symbol}`
+        );
 
     rightCache = data;
 
-    updateCoinCard(
+    updateCoin(
         "right",
         data
     );
@@ -384,49 +315,48 @@ async function loadRightCoin() {
 
 async function loadMacro() {
 
-    document.getElementById(
-        "macro-card"
-    ).innerHTML = "Loading...";
+    getEl("macro-card").innerHTML =
+        "Loading...";
 
     const data =
-        await fetchMacro();
+        await fetchJson(
+            `/api/macro`
+        );
 
     macroCache = data;
 
     updateMacro(data);
 }
 
-window.onload = async function () {
+window.onload = async () => {
 
-    console.log("SCRIPT START");
+    console.log("START");
 
-    await loadLeftCoin();
+    if (getEl("left-load")) {
 
-    await loadRightCoin();
+        getEl("left-load").onclick =
+            loadLeft;
+    }
+
+    if (getEl("right-load")) {
+
+        getEl("right-load").onclick =
+            loadRight;
+    }
+
+    await loadLeft();
+
+    await loadRight();
 
     await loadMacro();
+
+    setInterval(async () => {
+
+        await loadLeft();
+
+        await loadRight();
+
+        await loadMacro();
+
+    }, 60000);
 };
-
-document
-    .getElementById("left-load")
-    .onclick = async function () {
-
-        await loadLeftCoin();
-    };
-
-document
-    .getElementById("right-load")
-    .onclick = async function () {
-
-        await loadRightCoin();
-    };
-
-setInterval(async function () {
-
-    await loadLeftCoin();
-
-    await loadRightCoin();
-
-    await loadMacro();
-
-}, 60000);
