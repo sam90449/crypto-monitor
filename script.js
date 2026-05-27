@@ -9,22 +9,23 @@ async function safeFetch(url) {
         const response = await fetch(
             `${url}?t=${Date.now()}`,
             {
-                method: "GET"
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
             }
         );
 
-        if (!response.ok) {
+        const text =
+            await response.text();
 
-            return {
-                error: "HTTP ERROR"
-            };
-        }
+        console.log("RAW:", text);
 
-        return await response.json();
+        return JSON.parse(text);
 
     } catch (e) {
 
-        console.log(e);
+        console.log("FETCH ERROR:", e);
 
         return {
             error: e.toString()
@@ -48,18 +49,19 @@ async function fetchMacro() {
 
 function num(v, d = 4) {
 
-    const n = Number(v);
+    const n = parseFloat(v);
 
     if (isNaN(n)) {
-        return "0.0000";
+
+        return (0).toFixed(d);
     }
 
     return n.toFixed(d);
 }
 
-function predictColor(value) {
+function predictColor(v) {
 
-    const n = Number(value);
+    const n = parseFloat(v);
 
     if (n > 0) {
         return "#00ff99";
@@ -75,11 +77,15 @@ function predictColor(value) {
 function updateCoinCard(side, data) {
 
     const card =
-        document.getElementById(`${side}-card`);
+        document.getElementById(
+            `${side}-card`
+        );
 
     if (!card) {
         return;
     }
+
+    console.log("COIN DATA:", data);
 
     if (!data || data.error) {
 
@@ -87,7 +93,7 @@ function updateCoinCard(side, data) {
 
 <div style="
 color:#ff5577;
-font-size:28px;
+font-size:30px;
 font-weight:bold;
 ">
 LOAD FAIL
@@ -95,90 +101,117 @@ LOAD FAIL
 
 `;
 
-        console.log(data);
-
         return;
     }
 
+    const symbol =
+        data.symbol || "-";
+
+    const price =
+        num(data.price);
+
+    const target =
+        num(data.target);
+
+    const ma5 =
+        num(data.ma5);
+
+    const ma15 =
+        num(data.ma15);
+
+    const ma30 =
+        num(data.ma30);
+
+    const ma5slope =
+        num(data.ma5slope);
+
+    const ma15slope =
+        num(data.ma15slope);
+
+    const ma30slope =
+        num(data.ma30slope);
+
     const predict =
-        Number(data.predict || 0);
+        num(data.predict);
 
     const color =
-        predictColor(predict);
+        predictColor(data.predict);
 
     card.innerHTML = `
 
 <div class="coin-box">
 
-<div class="coin-symbol">
-${data.symbol || "-"}USDT
+<div style="
+font-size:34px;
+font-weight:bold;
+margin-bottom:20px;
+">
+${symbol}USDT
 </div>
-
-<br>
 
 <div>
 PRICE:
-${num(data.price)}
+${price}
 </div>
 
 <br>
 
 <div>
 TARGET:
-${num(data.target)}
+${target}
 </div>
 
 <br>
 
 <div>
 5 MA:
-${num(data.ma5)}
+${ma5}
 </div>
 
 <br>
 
 <div>
 15 MA:
-${num(data.ma15)}
+${ma15}
 </div>
 
 <br>
 
 <div>
 30 MA:
-${num(data.ma30)}
+${ma30}
 </div>
 
 <br>
 
 <div>
 5 MA SLOPE:
-${num(data.ma5slope)}%
+${ma5slope}%
 </div>
 
 <br>
 
 <div>
 15 MA SLOPE:
-${num(data.ma15slope)}%
+${ma15slope}%
 </div>
 
 <br>
 
 <div>
 30 MA SLOPE:
-${num(data.ma30slope)}%
+${ma30slope}%
 </div>
 
 <br>
 
 <div style="
-color:${color};
-font-size:26px;
+font-size:30px;
 font-weight:bold;
+color:${color};
 ">
 FINAL PREDICT:
-${num(predict)}%
+${predict}%
 </div>
 
 </div>
@@ -189,11 +222,15 @@ ${num(predict)}%
 function updateMacro(data) {
 
     const card =
-        document.getElementById("macro-card");
+        document.getElementById(
+            "macro-card"
+        );
 
     if (!card) {
         return;
     }
+
+    console.log("MACRO DATA:", data);
 
     if (!data || data.error) {
 
@@ -201,7 +238,7 @@ function updateMacro(data) {
 
 <div style="
 color:#ff5577;
-font-size:28px;
+font-size:32px;
 font-weight:bold;
 ">
 MACRO LOAD FAIL
@@ -209,10 +246,29 @@ MACRO LOAD FAIL
 
 `;
 
-        console.log(data);
-
         return;
     }
+
+    const btc =
+        num(data.btc, 2);
+
+    const eth =
+        num(data.eth, 2);
+
+    const btcChange =
+        data.btcChange || "-";
+
+    const btcVolume =
+        data.btcVolume || "-";
+
+    const status =
+        data.status || "-";
+
+    const icon =
+        data.icon || "⚪";
+
+    const updateTime =
+        data.updateTime || "-";
 
     card.innerHTML = `
 
@@ -228,49 +284,49 @@ BTC 宏觀方向（4-24H）
 
 <div style="
 font-size:36px;
-margin-bottom:25px;
+margin-bottom:30px;
 ">
-${data.icon || "⚪"}
-${data.status || "-"}
+${icon}
+${status}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:18px;
+margin-bottom:20px;
 ">
 BTC:
-${num(data.btc,2)}
+${btc}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:18px;
+margin-bottom:20px;
 ">
 ETH:
-${num(data.eth,2)}
+${eth}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:18px;
+margin-bottom:20px;
 ">
 BTC 24H CHANGE:
-${data.btcChange || "-"}
+${btcChange}
 </div>
 
 <div style="
 font-size:30px;
-margin-bottom:18px;
+margin-bottom:20px;
 ">
 BTC VOLUME:
-${data.btcVolume || "-"}
+${btcVolume}
 </div>
 
 <div style="
 font-size:30px;
 ">
 HK UPDATE:
-${data.updateTime || "-"}
+${updateTime}
 </div>
 
 </div>
@@ -287,8 +343,9 @@ async function loadLeftCoin() {
             .trim()
             .toUpperCase();
 
-    document.getElementById("left-card").innerHTML =
-        "Loading...";
+    document.getElementById(
+        "left-card"
+    ).innerHTML = "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -310,8 +367,9 @@ async function loadRightCoin() {
             .trim()
             .toUpperCase();
 
-    document.getElementById("right-card").innerHTML =
-        "Loading...";
+    document.getElementById(
+        "right-card"
+    ).innerHTML = "Loading...";
 
     const data =
         await fetchCoin(symbol);
@@ -326,8 +384,9 @@ async function loadRightCoin() {
 
 async function loadMacro() {
 
-    document.getElementById("macro-card").innerHTML =
-        "Loading...";
+    document.getElementById(
+        "macro-card"
+    ).innerHTML = "Loading...";
 
     const data =
         await fetchMacro();
@@ -337,9 +396,9 @@ async function loadMacro() {
     updateMacro(data);
 }
 
-window.onload = async () => {
+window.onload = async function () {
 
-    console.log("START");
+    console.log("SCRIPT START");
 
     await loadLeftCoin();
 
@@ -350,19 +409,19 @@ window.onload = async () => {
 
 document
     .getElementById("left-load")
-    .onclick = async () => {
+    .onclick = async function () {
 
         await loadLeftCoin();
     };
 
 document
     .getElementById("right-load")
-    .onclick = async () => {
+    .onclick = async function () {
 
         await loadRightCoin();
     };
 
-setInterval(async () => {
+setInterval(async function () {
 
     await loadLeftCoin();
 
