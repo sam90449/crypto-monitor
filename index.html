@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Monitor</title>
+
+<style>
+body{
+    background:#111;
+    color:#00ff99;
+    font-family:Arial;
+    text-align:center;
+    padding-top:50px;
+}
+
+.box{
+    background:#1b1b1b;
+    width:300px;
+    margin:auto;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 15px #00ff99;
+}
+
+.price{
+    font-size:40px;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>BTCUSDT</h1>
+
+<div class="price" id="price">
+Loading...
+</div>
+
+</div>
+
+<script>
+
+async function loadPrice(){
+
+    const url =
+    "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+
+    const response = await fetch(url);
+
+    const data = await response.json();
+
+    document.getElementById("price").innerHTML =
+    parseFloat(data.price).toFixed(2);
+
+}
+
+loadPrice();
+
+setInterval(loadPrice,5000);
+
+</script>
+
+</body>
+</html>
