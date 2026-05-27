@@ -2,12 +2,12 @@ let leftCache = null;
 let rightCache = null;
 let macroCache = null;
 
-function getEl(id) {
+function el(id) {
 
     return document.getElementById(id);
 }
 
-async function fetchJson(url) {
+async function getJson(url) {
 
     try {
 
@@ -22,8 +22,15 @@ async function fetchJson(url) {
         const text =
             await response.text();
 
-        console.log(url);
-        console.log(text);
+        console.log("URL:", url);
+        console.log("RAW:", text);
+
+        if (!text || text.includes("error")) {
+
+            return {
+                error: text
+            };
+        }
 
         return JSON.parse(text);
 
@@ -37,20 +44,24 @@ async function fetchJson(url) {
     }
 }
 
-function toNum(v, d = 4) {
+function fixNum(v, d = 4) {
 
     const n =
         parseFloat(v);
 
-    if (isNaN(n)) {
+    if (
+        isNaN(n) ||
+        n === null ||
+        n === undefined
+    ) {
 
-        return (0).toFixed(d);
+        return "0.0000";
     }
 
     return n.toFixed(d);
 }
 
-function predictColor(v) {
+function colorPredict(v) {
 
     const n =
         parseFloat(v);
@@ -66,151 +77,163 @@ function predictColor(v) {
     return "#ffffff";
 }
 
-function buildCoinHTML(data) {
+function renderCoin(side, data) {
+
+    const box =
+        el(`${side}-card`);
+
+    if (!box) {
+        return;
+    }
+
+    if (!data || data.error) {
+
+        box.innerHTML = `
+
+<div style="
+font-size:28px;
+font-weight:bold;
+color:#ff5577;
+">
+LOAD FAIL
+</div>
+
+<div style="
+margin-top:15px;
+font-size:18px;
+color:#999;
+word-break:break-all;
+">
+${data?.error || "UNKNOWN"}
+</div>
+
+`;
+
+        return;
+    }
 
     const predict =
         parseFloat(data.predict || 0);
 
-    return `
+    box.innerHTML = `
 
 <div style="
 font-size:34px;
 font-weight:bold;
-margin-bottom:20px;
+margin-bottom:25px;
 ">
 ${data.symbol || "-"}USDT
 </div>
 
 <div>
 PRICE:
-${toNum(data.price)}
+${fixNum(data.price)}
 </div>
 
 <br>
 
 <div>
 TARGET:
-${toNum(data.target)}
+${fixNum(data.target)}
 </div>
 
 <br>
 
 <div>
 5 MA:
-${toNum(data.ma5)}
+${fixNum(data.ma5)}
 </div>
 
 <br>
 
 <div>
 15 MA:
-${toNum(data.ma15)}
+${fixNum(data.ma15)}
 </div>
 
 <br>
 
 <div>
 30 MA:
-${toNum(data.ma30)}
+${fixNum(data.ma30)}
 </div>
 
 <br>
 
 <div>
 5 MA SLOPE:
-${toNum(data.ma5slope)}%
+${fixNum(data.ma5slope)}%
 </div>
 
 <br>
 
 <div>
 15 MA SLOPE:
-${toNum(data.ma15slope)}%
+${fixNum(data.ma15slope)}%
 </div>
 
 <br>
 
 <div>
 30 MA SLOPE:
-${toNum(data.ma30slope)}%
+${fixNum(data.ma30slope)}%
 </div>
 
 <br>
 
 <div style="
-font-size:28px;
+font-size:30px;
 font-weight:bold;
-color:${predictColor(predict)};
+color:${colorPredict(predict)};
 ">
 FINAL PREDICT:
-${toNum(predict)}%
+${fixNum(predict)}%
 </div>
 
 `;
 }
 
-function updateCoin(side, data) {
+function renderMacro(data) {
 
-    const card =
-        getEl(`${side}-card`);
+    const box =
+        el("macro-card");
 
-    if (!card) {
+    if (!box) {
         return;
     }
 
     if (!data || data.error) {
 
-        card.innerHTML = `
+        box.innerHTML = `
 
 <div style="
-color:#ff5577;
-font-size:30px;
+font-size:32px;
 font-weight:bold;
-">
-LOAD FAIL
-</div>
-
-`;
-
-        return;
-    }
-
-    card.innerHTML =
-        buildCoinHTML(data);
-}
-
-function updateMacro(data) {
-
-    const card =
-        getEl("macro-card");
-
-    if (!card) {
-        return;
-    }
-
-    if (!data || data.error) {
-
-        card.innerHTML = `
-
-<div style="
 color:#ff5577;
-font-size:30px;
-font-weight:bold;
 ">
 MACRO LOAD FAIL
 </div>
 
+<div style="
+margin-top:20px;
+font-size:18px;
+color:#999;
+word-break:break-all;
+">
+${data?.error || "UNKNOWN"}
+</div>
+
 `;
 
         return;
     }
 
-    card.innerHTML = `
+    box.innerHTML = `
 
 <div style="
 font-size:42px;
 font-weight:bold;
-margin-bottom:25px;
+margin-bottom:30px;
 ">
 BTC 宏觀方向（4-24H）
 </div>
@@ -228,7 +251,7 @@ font-size:30px;
 margin-bottom:18px;
 ">
 BTC:
-${toNum(data.btc,2)}
+${fixNum(data.btc,2)}
 </div>
 
 <div style="
@@ -236,7 +259,7 @@ font-size:30px;
 margin-bottom:18px;
 ">
 ETH:
-${toNum(data.eth,2)}
+${fixNum(data.eth,2)}
 </div>
 
 <div style="
@@ -268,22 +291,22 @@ ${data.updateTime || "-"}
 async function loadLeft() {
 
     const symbol =
-        getEl("left-input")
+        el("left-input")
         .value
         .trim()
         .toUpperCase();
 
-    getEl("left-card").innerHTML =
+    el("left-card").innerHTML =
         "Loading...";
 
     const data =
-        await fetchJson(
+        await getJson(
             `/api/coin/${symbol}`
         );
 
     leftCache = data;
 
-    updateCoin(
+    renderCoin(
         "left",
         data
     );
@@ -292,22 +315,22 @@ async function loadLeft() {
 async function loadRight() {
 
     const symbol =
-        getEl("right-input")
+        el("right-input")
         .value
         .trim()
         .toUpperCase();
 
-    getEl("right-card").innerHTML =
+    el("right-card").innerHTML =
         "Loading...";
 
     const data =
-        await fetchJson(
+        await getJson(
             `/api/coin/${symbol}`
         );
 
     rightCache = data;
 
-    updateCoin(
+    renderCoin(
         "right",
         data
     );
@@ -315,32 +338,32 @@ async function loadRight() {
 
 async function loadMacro() {
 
-    getEl("macro-card").innerHTML =
+    el("macro-card").innerHTML =
         "Loading...";
 
     const data =
-        await fetchJson(
+        await getJson(
             `/api/macro`
         );
 
     macroCache = data;
 
-    updateMacro(data);
+    renderMacro(data);
 }
 
-window.onload = async () => {
+window.onload = async function () {
 
-    console.log("START");
+    console.log("SCRIPT START");
 
-    if (getEl("left-load")) {
+    if (el("left-load")) {
 
-        getEl("left-load").onclick =
+        el("left-load").onclick =
             loadLeft;
     }
 
-    if (getEl("right-load")) {
+    if (el("right-load")) {
 
-        getEl("right-load").onclick =
+        el("right-load").onclick =
             loadRight;
     }
 
@@ -350,7 +373,7 @@ window.onload = async () => {
 
     await loadMacro();
 
-    setInterval(async () => {
+    setInterval(async function () {
 
         await loadLeft();
 
