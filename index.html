@@ -53,7 +53,10 @@ id="leftPrice"
 TONUSDT : Loading...
 </div>
 
-<div class="red-box-row">
+<div
+class="red-box-row"
+id="leftBoxes"
+>
 
 <div class="red-box"></div>
 <div class="red-box"></div>
@@ -108,7 +111,10 @@ id="rightPrice"
 BTCUSDT : Loading...
 </div>
 
-<div class="red-box-row">
+<div
+class="red-box-row"
+id="rightBoxes"
+>
 
 <div class="red-box"></div>
 <div class="red-box"></div>
@@ -135,6 +141,8 @@ Loading...
 
 </div>
 
+<div id="macroArea"></div>
+
 <script src="script.js"></script>
 
 <script>
@@ -146,14 +154,14 @@ function updateHKTime(){
 
     const hk =
     now.toLocaleString(
-    "en-US",
-    {
-        timeZone:"Asia/Hong_Kong"
-    }
+        "en-US",
+        {
+            timeZone:"Asia/Hong_Kong"
+        }
     );
 
     document.getElementById(
-    "updateTime"
+        "updateTime"
     ).innerHTML =
     "HK UPDATE TIME : " + hk;
 
@@ -167,9 +175,9 @@ loadCoin("left");
 loadCoin("right");
 
 </script>
-<div id="macroArea"></div>
 
 <script src="macro.js"></script>
+
 </body>
 
 </html>
