@@ -2,12 +2,11 @@ let leftCache = null;
 let rightCache = null;
 let macroCache = null;
 
-function el(id) {
-
+function $(id) {
     return document.getElementById(id);
 }
 
-async function getJson(url) {
+async function safeFetch(url) {
 
     try {
 
@@ -19,13 +18,24 @@ async function getJson(url) {
             }
         );
 
-        const text =
-            await response.text();
+        const text = await response.text();
 
-        console.log("URL:", url);
-        console.log("RAW:", text);
+        console.log("FETCH URL:", url);
+        console.log("FETCH TEXT:", text);
 
-        if (!text || text.includes("error")) {
+        if (!response.ok) {
+
+            return {
+                error: `HTTP ${response.status}`
+            };
+        }
+
+        if (
+            !text ||
+            text.includes("Cannot read") ||
+            text.includes("FETCH FAIL") ||
+            text.includes("TypeError")
+        ) {
 
             return {
                 error: text
@@ -44,27 +54,25 @@ async function getJson(url) {
     }
 }
 
-function fixNum(v, d = 4) {
+function num(v, d = 4) {
 
-    const n =
-        parseFloat(v);
+    const n = Number(v);
 
     if (
-        isNaN(n) ||
-        n === null ||
-        n === undefined
+        v === undefined ||
+        v === null ||
+        isNaN(n)
     ) {
 
-        return "0.0000";
+        return (0).toFixed(d);
     }
 
     return n.toFixed(d);
 }
 
-function colorPredict(v) {
+function predictColor(v) {
 
-    const n =
-        parseFloat(v);
+    const n = Number(v);
 
     if (n > 0) {
         return "#00ff99";
@@ -79,32 +87,30 @@ function colorPredict(v) {
 
 function renderCoin(side, data) {
 
-    const box =
-        el(`${side}-card`);
+    const card =
+        $(`${side}-card`);
 
-    if (!box) {
-        return;
-    }
+    if (!card) return;
 
     if (!data || data.error) {
 
-        box.innerHTML = `
+        card.innerHTML = `
 
 <div style="
-font-size:28px;
+font-size:32px;
 font-weight:bold;
 color:#ff5577;
+margin-bottom:20px;
 ">
 LOAD FAIL
 </div>
 
 <div style="
-margin-top:15px;
-font-size:18px;
-color:#999;
+font-size:16px;
+color:#aaa;
 word-break:break-all;
 ">
-${data?.error || "UNKNOWN"}
+${data?.error || "UNKNOWN ERROR"}
 </div>
 
 `;
@@ -113,9 +119,9 @@ ${data?.error || "UNKNOWN"}
     }
 
     const predict =
-        parseFloat(data.predict || 0);
+        Number(data.predict || 0);
 
-    box.innerHTML = `
+    card.innerHTML = `
 
 <div style="
 font-size:34px;
@@ -125,69 +131,37 @@ margin-bottom:25px;
 ${data.symbol || "-"}USDT
 </div>
 
-<div>
-PRICE:
-${fixNum(data.price)}
-</div>
-
+<div>PRICE: ${num(data.price)}</div>
 <br>
 
-<div>
-TARGET:
-${fixNum(data.target)}
-</div>
-
+<div>TARGET: ${num(data.target)}</div>
 <br>
 
-<div>
-5 MA:
-${fixNum(data.ma5)}
-</div>
-
+<div>5 MA: ${num(data.ma5)}</div>
 <br>
 
-<div>
-15 MA:
-${fixNum(data.ma15)}
-</div>
-
+<div>15 MA: ${num(data.ma15)}</div>
 <br>
 
-<div>
-30 MA:
-${fixNum(data.ma30)}
-</div>
-
+<div>30 MA: ${num(data.ma30)}</div>
 <br>
 
-<div>
-5 MA SLOPE:
-${fixNum(data.ma5slope)}%
-</div>
-
+<div>5 MA SLOPE: ${num(data.ma5slope)}%</div>
 <br>
 
-<div>
-15 MA SLOPE:
-${fixNum(data.ma15slope)}%
-</div>
-
+<div>15 MA SLOPE: ${num(data.ma15slope)}%</div>
 <br>
 
-<div>
-30 MA SLOPE:
-${fixNum(data.ma30slope)}%
-</div>
-
+<div>30 MA SLOPE: ${num(data.ma30slope)}%</div>
 <br>
 
 <div style="
 font-size:30px;
 font-weight:bold;
-color:${colorPredict(predict)};
+color:${predictColor(predict)};
 ">
 FINAL PREDICT:
-${fixNum(predict)}%
+${num(predict)}%
 </div>
 
 `;
@@ -195,29 +169,27 @@ ${fixNum(predict)}%
 
 function renderMacro(data) {
 
-    const box =
-        el("macro-card");
+    const card =
+        $("macro-card");
 
-    if (!box) {
-        return;
-    }
+    if (!card) return;
 
     if (!data || data.error) {
 
-        box.innerHTML = `
+        card.innerHTML = `
 
 <div style="
 font-size:32px;
 font-weight:bold;
 color:#ff5577;
+margin-bottom:20px;
 ">
 MACRO LOAD FAIL
 </div>
 
 <div style="
-margin-top:20px;
 font-size:18px;
-color:#999;
+color:#aaa;
 word-break:break-all;
 ">
 ${data?.error || "UNKNOWN"}
@@ -228,7 +200,7 @@ ${data?.error || "UNKNOWN"}
         return;
     }
 
-    box.innerHTML = `
+    card.innerHTML = `
 
 <div style="
 font-size:42px;
@@ -247,39 +219,39 @@ ${data.status || "-"}
 </div>
 
 <div style="
-font-size:30px;
-margin-bottom:18px;
+font-size:28px;
+margin-bottom:15px;
 ">
 BTC:
-${fixNum(data.btc,2)}
+${num(data.btc, 2)}
 </div>
 
 <div style="
-font-size:30px;
-margin-bottom:18px;
+font-size:28px;
+margin-bottom:15px;
 ">
 ETH:
-${fixNum(data.eth,2)}
+${num(data.eth, 2)}
 </div>
 
 <div style="
-font-size:30px;
-margin-bottom:18px;
+font-size:28px;
+margin-bottom:15px;
 ">
 BTC 24H CHANGE:
 ${data.btcChange || "-"}
 </div>
 
 <div style="
-font-size:30px;
-margin-bottom:18px;
+font-size:28px;
+margin-bottom:15px;
 ">
 BTC VOLUME:
 ${data.btcVolume || "-"}
 </div>
 
 <div style="
-font-size:30px;
+font-size:28px;
 ">
 HK UPDATE:
 ${data.updateTime || "-"}
@@ -291,60 +263,54 @@ ${data.updateTime || "-"}
 async function loadLeft() {
 
     const symbol =
-        el("left-input")
+        $("left-input")
         .value
         .trim()
         .toUpperCase();
 
-    el("left-card").innerHTML =
+    $("left-card").innerHTML =
         "Loading...";
 
     const data =
-        await getJson(
+        await safeFetch(
             `/api/coin/${symbol}`
         );
 
     leftCache = data;
 
-    renderCoin(
-        "left",
-        data
-    );
+    renderCoin("left", data);
 }
 
 async function loadRight() {
 
     const symbol =
-        el("right-input")
+        $("right-input")
         .value
         .trim()
         .toUpperCase();
 
-    el("right-card").innerHTML =
+    $("right-card").innerHTML =
         "Loading...";
 
     const data =
-        await getJson(
+        await safeFetch(
             `/api/coin/${symbol}`
         );
 
     rightCache = data;
 
-    renderCoin(
-        "right",
-        data
-    );
+    renderCoin("right", data);
 }
 
 async function loadMacro() {
 
-    el("macro-card").innerHTML =
+    $("macro-card").innerHTML =
         "Loading...";
 
     const data =
-        await getJson(
-            `/api/macro`
-        );
+        await safeFetch("/api/macro");
+
+    console.log("MACRO:", data);
 
     macroCache = data;
 
@@ -355,15 +321,15 @@ window.onload = async function () {
 
     console.log("SCRIPT START");
 
-    if (el("left-load")) {
+    if ($("left-load")) {
 
-        el("left-load").onclick =
+        $("left-load").onclick =
             loadLeft;
     }
 
-    if (el("right-load")) {
+    if ($("right-load")) {
 
-        el("right-load").onclick =
+        $("right-load").onclick =
             loadRight;
     }
 
@@ -373,7 +339,7 @@ window.onload = async function () {
 
     await loadMacro();
 
-    setInterval(async function () {
+    setInterval(async () => {
 
         await loadLeft();
 
