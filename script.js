@@ -1,6 +1,6 @@
-let leftCache = null;
-let rightCache = null;
-let macroCache = null;
+const leftCache = null;
+const rightCache = null;
+const macroCache = null;
 
 async function safeFetch(url,retry=3){
 
@@ -8,123 +8,31 @@ async function safeFetch(url,retry=3){
 
         try{
 
-            const response = await fetch(url,{
-                cache:"no-cache"
+            const response =
+            await fetch(url,{
+                method:"GET",
+                headers:{
+                    "Accept":"application/json"
+                },
+                cache:"no-store"
             });
 
             if(response.ok){
 
                 return response;
-
             }
 
         }catch(e){
 
+            console.log(e);
         }
 
-        await new Promise(r=>setTimeout(r,400));
-
+        await new Promise(
+            r=>setTimeout(r,400)
+        );
     }
 
     throw new Error("FETCH FAIL");
-
-}
-
-async function getTicker(symbol){
-
-    const url =
-    `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`;
-
-    const response =
-    await safeFetch(url);
-
-    return await response.json();
-
-}
-
-async function getKlines(symbol){
-
-    const url =
-    `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`;
-
-    const response =
-    await safeFetch(url);
-
-    return await response.json();
-
-}
-
-async function getGlobalData(){
-
-    const response =
-    await safeFetch(
-        "https://api.coingecko.com/api/v3/global"
-    );
-
-    return await response.json();
-
-}
-
-function calcMA(closes,length){
-
-    const result = [];
-
-    for(let i=0;i<closes.length;i++){
-
-        if(i < length-1){
-
-            result.push(null);
-
-        }else{
-
-            const slice =
-            closes.slice(
-                i-length+1,
-                i+1
-            );
-
-            const avg =
-            slice.reduce(
-                (a,b)=>a+b,
-                0
-            ) / length;
-
-            result.push(avg);
-
-        }
-
-    }
-
-    return result;
-
-}
-
-function calcSlope(values){
-
-    if(values.length < 2){
-
-        return 0;
-
-    }
-
-    const first =
-    values[0];
-
-    const last =
-    values[values.length-1];
-
-    if(first === 0){
-
-        return 0;
-
-    }
-
-    return (
-        (
-            last - first
-        ) / first
-    ) * 100;
-
 }
 
 function renderPredictBoxes(containerId,predict){
@@ -137,13 +45,10 @@ function renderPredictBoxes(containerId,predict){
     if(!container){
 
         return;
-
     }
 
     const abs =
     Math.abs(predict);
-
-    let html = "";
 
     const isUp =
     predict >= 0;
@@ -174,56 +79,56 @@ function renderPredictBoxes(containerId,predict){
             label:"2%",
             active:abs >= 2
         }
-
     ];
+
+    container.innerHTML = "";
 
     for(const lv of levels){
 
-        html += `
+        const line =
+        document.createElement("div");
 
-        <div class="predict-line">
+        line.className =
+        "predict-line";
 
-            <div class="
-                predict-left
-                ${isUp ? 'up-text' : 'down-text'}
-            ">
+        const left =
+        document.createElement("div");
 
-                ${arrow} ${lv.label}
+        left.className =
+        `predict-left ${
+            isUp
+            ? "up-text"
+            : "down-text"
+        }`;
 
-            </div>
+        left.textContent =
+        `${arrow} ${lv.label}`;
 
-            <div class="predict-right">
+        const right =
+        document.createElement("div");
 
-                <div class="
-                    predict-square
-                    ${lv.active ? colorClass : ''}
-                "></div>
+        right.className =
+        "predict-right";
 
-                <div class="
-                    predict-square
-                    ${lv.active ? colorClass : ''}
-                "></div>
+        for(let i=0;i<4;i++){
 
-                <div class="
-                    predict-square
-                    ${lv.active ? colorClass : ''}
-                "></div>
+            const square =
+            document.createElement("div");
 
-                <div class="
-                    predict-square
-                    ${lv.active ? colorClass : ''}
-                "></div>
+            square.className =
+            lv.active
+            ? `predict-square ${colorClass}`
+            : "predict-square";
 
-            </div>
+            right.appendChild(square);
+        }
 
-        </div>
+        line.appendChild(left);
 
-        `;
+        line.appendChild(right);
 
+        container.appendChild(line);
     }
-
-    container.innerHTML = html;
-
 }
 
 function renderCoin(side,data){
@@ -245,11 +150,8 @@ function renderCoin(side,data){
 
     if(priceEl){
 
-        priceEl.innerHTML = `
-        ${data.symbol}USDT :
-        <br>
-        ${data.price.toFixed(4)}
-        `;
+        priceEl.textContent =
+        `${data.symbol}USDT : ${data.price.toFixed(4)}`;
     }
 
     renderPredictBoxes(
@@ -259,49 +161,44 @@ function renderCoin(side,data){
 
     if(predictEl){
 
-        predictEl.innerHTML = `
-        1-3H Prediction :
-        ${data.predict.toFixed(2)}%
-        (Target:
-        ${data.target.toFixed(4)})
-        `;
+        predictEl.textContent =
+        `1-3H Prediction : ${data.predict.toFixed(2)}% (Target: ${data.target.toFixed(4)})`;
     }
 
     if(infoEl){
 
-        infoEl.innerHTML = `
-        SYMBOL:
-        ${data.symbol}USDT
+        infoEl.textContent =
+`SYMBOL:
+${data.symbol}USDT
 
-        PRICE:
-        ${data.price.toFixed(4)}
+PRICE:
+${data.price.toFixed(4)}
 
-        TARGET:
-        ${data.target.toFixed(4)}
+TARGET:
+${data.target.toFixed(4)}
 
-        5 MA:
-        ${data.ma5.toFixed(4)}
+5 MA:
+${data.ma5.toFixed(4)}
 
-        15 MA:
-        ${data.ma15.toFixed(4)}
+15 MA:
+${data.ma15.toFixed(4)}
 
-        30 MA:
-        ${data.ma30.toFixed(4)}
+30 MA:
+${data.ma30.toFixed(4)}
 
-        5 MA SLOPE:
-        ${data.ma5slope.toFixed(4)}%
+5 MA SLOPE:
+${data.ma5slope.toFixed(4)}%
 
-        15 MA SLOPE:
-        ${data.ma15slope.toFixed(4)}%
+15 MA SLOPE:
+${data.ma15slope.toFixed(4)}%
 
-        30 MA SLOPE:
-        ${data.ma30slope.toFixed(4)}%
+30 MA SLOPE:
+${data.ma30slope.toFixed(4)}%
 
-        FINAL PREDICT:
-        ${data.predict.toFixed(4)}%
-        `;
+FINAL PREDICT:
+${data.predict.toFixed(4)}%
+`;
     }
-
 }
 
 async function loadCoin(side){
@@ -318,95 +215,13 @@ async function loadCoin(side){
 
     try{
 
-        const klines =
-        await getKlines(symbol);
-
-        const closes =
-        klines.map(
-            k=>parseFloat(k[4])
+        const response =
+        await safeFetch(
+            `/api/coin/${symbol}`
         );
 
-        const price =
-        closes[
-            closes.length-1
-        ];
-
-        const ma5 =
-        calcMA(closes,5);
-
-        const ma15 =
-        calcMA(closes,15);
-
-        const ma30 =
-        calcMA(closes,30);
-
-        const ma5slope =
-        calcSlope(
-            ma5.slice(-5).filter(v=>v)
-        );
-
-        const ma15slope =
-        calcSlope(
-            ma15.slice(-5).filter(v=>v)
-        );
-
-        const ma30slope =
-        calcSlope(
-            ma30.slice(-5).filter(v=>v)
-        );
-
-        let predict =
-
-            ma5slope * 0.5 +
-
-            ma15slope * 0.3 +
-
-            ma30slope * 0.2;
-
-        if(isNaN(predict)){
-
-            predict = 0;
-
-        }
-
-        if(predict > 2){
-
-            predict = 2;
-
-        }
-
-        if(predict < -2){
-
-            predict = -2;
-
-        }
-
-        const target =
-        price * (
-            1 + predict / 100
-        );
-
-        const data = {
-
-            symbol,
-            price,
-            target,
-            predict,
-
-            ma5:
-            ma5[ma5.length-1],
-
-            ma15:
-            ma15[ma15.length-1],
-
-            ma30:
-            ma30[ma30.length-1],
-
-            ma5slope,
-            ma15slope,
-            ma30slope
-
-        };
+        const data =
+        await response.json();
 
         if(side === "left"){
 
@@ -415,10 +230,12 @@ async function loadCoin(side){
         }else{
 
             rightCache = data;
-
         }
 
-        renderCoin(side,data);
+        renderCoin(
+            side,
+            data
+        );
 
     }catch(e){
 
@@ -431,39 +248,12 @@ async function loadCoin(side){
 
         if(cache){
 
-            renderCoin(side,cache);
-
+            renderCoin(
+                side,
+                cache
+            );
         }
-
     }
-
-}
-
-function updateHKTime(){
-
-    const now =
-    new Date();
-
-    const hk =
-    now.toLocaleString(
-        "en-US",
-        {
-            timeZone:"Asia/Hong_Kong"
-        }
-    );
-
-    const el =
-    document.getElementById(
-        "updateTime"
-    );
-
-    if(el){
-
-        el.innerHTML =
-        `HK UPDATE TIME : ${hk}`;
-
-    }
-
 }
 
 function renderMacro(data){
@@ -476,132 +266,64 @@ function renderMacro(data){
     if(!macro){
 
         return;
-
     }
 
-    macro.innerHTML = `
+    macro.innerHTML =
+`
+<div class="macro-main-title">
+BTC 宏觀方向（4-24H）
+</div>
 
-    <div class="macro-main-title">
+<div class="macro-status-row">
 
-        BTC 宏觀方向（4-24H）
+<span class="macro-dot">
+${data.icon}
+</span>
 
-    </div>
+<span class="macro-status">
+${data.status}
+</span>
 
-    <div class="macro-status-row">
+</div>
 
-        <span class="macro-dot">
-        ${data.icon}
-        </span>
+<div class="macro-price">
+BTC:
+${data.btc.toFixed(2)}
+</div>
 
-        <span class="macro-status">
-        ${data.status}
-        </span>
+<div class="macro-price">
+ETH:
+${data.eth.toFixed(2)}
+</div>
 
-    </div>
+<div class="macro-price">
+TOTAL MARKET:
+${data.marketCap}
+</div>
 
-    <div class="macro-price">
-        BTC:
-        ${data.btc.toFixed(2)}
-    </div>
+<div class="macro-price">
+BTC DOM:
+${data.btcDom}
+</div>
 
-    <div class="macro-price">
-        ETH:
-        ${data.eth.toFixed(2)}
-    </div>
-
-    <div class="macro-price">
-        TOTAL MARKET:
-        ${data.marketCap}
-    </div>
-
-    <div class="macro-price">
-        BTC DOM:
-        ${data.btcDom}
-    </div>
-
-    `;
-
+<div class="macro-price">
+HK UPDATE:
+${data.updateTime}
+</div>
+`;
 }
 
 async function loadMacro(){
 
     try{
 
-        const btc =
-        await getTicker("BTC");
+        const response =
+        await safeFetch(
+            "/api/macro"
+        );
 
-        const eth =
-        await getTicker("ETH");
-
-        const global =
-        await getGlobalData();
-
-        const btcPrice =
-        parseFloat(btc.price);
-
-        const ethPrice =
-        parseFloat(eth.price);
-
-        const marketCap =
-        global.data
-        .total_market_cap
-        .usd;
-
-        const btcDom =
-        global.data
-        .market_cap_percentage
-        .btc;
-
-        let status =
-        "中性震盪";
-
-        let icon =
-        "🟡";
-
-        if(btcPrice > 90000){
-
-            status =
-            "強勢偏多";
-
-            icon =
-            "🟢";
-
-        }
-
-        if(btcPrice < 65000){
-
-            status =
-            "偏弱震盪";
-
-            icon =
-            "🔴";
-
-        }
-
-        const data = {
-
-            btc:
-            btcPrice,
-
-            eth:
-            ethPrice,
-
-            marketCap:
-            "~" +
-            (
-                marketCap /
-                1000000000000
-            ).toFixed(2)
-            + "T",
-
-            btcDom:
-            btcDom.toFixed(2)
-            + "%",
-
-            status,
-            icon
-
-        };
+        const data =
+        await response.json();
 
         macroCache = data;
 
@@ -613,12 +335,37 @@ async function loadMacro(){
 
         if(macroCache){
 
-            renderMacro(macroCache);
-
+            renderMacro(
+                macroCache
+            );
         }
-
     }
+}
 
+function updateHKTime(){
+
+    const now =
+    new Date();
+
+    const hk =
+    now.toLocaleString(
+        "en-US",
+        {
+            timeZone:
+            "Asia/Hong_Kong"
+        }
+    );
+
+    const el =
+    document.getElementById(
+        "updateTime"
+    );
+
+    if(el){
+
+        el.textContent =
+        `HK UPDATE TIME : ${hk}`;
+    }
 }
 
 function startSystem(){
@@ -648,7 +395,6 @@ function startSystem(){
         loadMacro,
         45000
     );
-
 }
 
 startSystem();
