@@ -46,13 +46,26 @@ async function fetchMacro() {
     );
 }
 
+function num(v, d = 4) {
+
+    const n = Number(v);
+
+    if (isNaN(n)) {
+        return "0.0000";
+    }
+
+    return n.toFixed(d);
+}
+
 function predictColor(value) {
 
-    if (value > 0) {
+    const n = Number(value);
+
+    if (n > 0) {
         return "#00ff99";
     }
 
-    if (value < 0) {
+    if (n < 0) {
         return "#ff5577";
     }
 
@@ -98,63 +111,63 @@ LOAD FAIL
 <div class="coin-box">
 
 <div class="coin-symbol">
-${data.symbol}USDT
+${data.symbol || "-"}USDT
 </div>
 
 <br>
 
 <div>
 PRICE:
-${Number(data.price).toFixed(4)}
+${num(data.price)}
 </div>
 
 <br>
 
 <div>
 TARGET:
-${Number(data.target).toFixed(4)}
+${num(data.target)}
 </div>
 
 <br>
 
 <div>
 5 MA:
-${Number(data.ma5).toFixed(4)}
+${num(data.ma5)}
 </div>
 
 <br>
 
 <div>
 15 MA:
-${Number(data.ma15).toFixed(4)}
+${num(data.ma15)}
 </div>
 
 <br>
 
 <div>
 30 MA:
-${Number(data.ma30).toFixed(4)}
+${num(data.ma30)}
 </div>
 
 <br>
 
 <div>
 5 MA SLOPE:
-${Number(data.ma5slope).toFixed(4)}%
+${num(data.ma5slope)}%
 </div>
 
 <br>
 
 <div>
 15 MA SLOPE:
-${Number(data.ma15slope).toFixed(4)}%
+${num(data.ma15slope)}%
 </div>
 
 <br>
 
 <div>
 30 MA SLOPE:
-${Number(data.ma30slope).toFixed(4)}%
+${num(data.ma30slope)}%
 </div>
 
 <br>
@@ -165,7 +178,7 @@ font-size:26px;
 font-weight:bold;
 ">
 FINAL PREDICT:
-${predict.toFixed(4)}%
+${num(predict)}%
 </div>
 
 </div>
@@ -217,8 +230,8 @@ BTC 宏觀方向（4-24H）
 font-size:36px;
 margin-bottom:25px;
 ">
-${data.icon}
-${data.status}
+${data.icon || "⚪"}
+${data.status || "-"}
 </div>
 
 <div style="
@@ -226,7 +239,7 @@ font-size:30px;
 margin-bottom:18px;
 ">
 BTC:
-${data.btc}
+${num(data.btc,2)}
 </div>
 
 <div style="
@@ -234,7 +247,7 @@ font-size:30px;
 margin-bottom:18px;
 ">
 ETH:
-${data.eth}
+${num(data.eth,2)}
 </div>
 
 <div style="
@@ -242,7 +255,7 @@ font-size:30px;
 margin-bottom:18px;
 ">
 BTC 24H CHANGE:
-${data.btcChange}
+${data.btcChange || "-"}
 </div>
 
 <div style="
@@ -250,14 +263,14 @@ font-size:30px;
 margin-bottom:18px;
 ">
 BTC VOLUME:
-${data.btcVolume}
+${data.btcVolume || "-"}
 </div>
 
 <div style="
 font-size:30px;
 ">
 HK UPDATE:
-${data.updateTime}
+${data.updateTime || "-"}
 </div>
 
 </div>
