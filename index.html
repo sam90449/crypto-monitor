@@ -33,9 +33,17 @@ DUAL COIN 1-3H AI PREDICTOR
 id="updateTime"
 class="update-time"
 >
+
 <div class="hk-time-area">
-    HK UPDATE TIME
-    <div id="hkTime"></div>
+
+HK UPDATE TIME
+
+<div id="hkTime">
+Loading...
+</div>
+
+</div>
+
 </div>
 
 <div class="coins-wrapper">
@@ -66,10 +74,21 @@ LOAD
 </div>
 
 <div
+id="leftSymbol"
+class="coin-symbol"
+>
+TON/USDT
+</div>
+
+<div
 id="leftPrice"
 class="coin-price"
 >
 Loading...
+</div>
+
+<div class="prediction-title">
+1-3H AI PREDICTION:
 </div>
 
 <div
@@ -79,17 +98,176 @@ class="prediction-main"
 Loading...
 </div>
 
-<div
-id="leftBoxes"
-class="prediction-grid"
->
+<div class="prediction-grid-wrap">
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲1%
 </div>
 
 <div
-id="leftInfo"
-class="info-grid"
+id="leftBoxes1"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲1.5%
+</div>
+
+<div
+id="leftBoxes15"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲2%
+</div>
+
+<div
+id="leftBoxes2"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼1%
+</div>
+
+<div
+id="leftDown1"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼1.5%
+</div>
+
+<div
+id="leftDown15"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼2%
+</div>
+
+<div
+id="leftDown2"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+</div>
+
+<div class="macro-grid">
+
+<div class="macro-card">
+<div class="macro-name">FEAR:</div>
+<div
+id="leftFear"
+class="macro-value"
 >
 Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">DXY:</div>
+<div
+id="leftDxy"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">DOW:</div>
+<div
+id="leftDow"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">VIX:</div>
+<div
+id="leftVix"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">GOLD:</div>
+<div
+id="leftGold"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">US10Y:</div>
+<div
+id="leftUs10y"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">MARKET FEAR:</div>
+<div
+id="leftFearText"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">UPDATE:</div>
+<div
+id="leftUpdate"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
 </div>
 
 </div>
@@ -120,10 +298,21 @@ LOAD
 </div>
 
 <div
+id="rightSymbol"
+class="coin-symbol"
+>
+BTC/USDT
+</div>
+
+<div
 id="rightPrice"
 class="coin-price"
 >
 Loading...
+</div>
+
+<div class="prediction-title">
+1-3H AI PREDICTION:
 </div>
 
 <div
@@ -133,25 +322,184 @@ class="prediction-main"
 Loading...
 </div>
 
-<div
-id="rightBoxes"
-class="prediction-grid"
->
+<div class="prediction-grid-wrap">
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲1%
 </div>
 
 <div
-id="rightInfo"
-class="info-grid"
+id="rightBoxes1"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲1.5%
+</div>
+
+<div
+id="rightBoxes15"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label green">
+▲2%
+</div>
+
+<div
+id="rightBoxes2"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼1%
+</div>
+
+<div
+id="rightDown1"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼1.5%
+</div>
+
+<div
+id="rightDown15"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+<div class="prediction-row">
+
+<div class="prediction-label red">
+▼2%
+</div>
+
+<div
+id="rightDown2"
+class="prediction-boxes"
+>
+</div>
+
+</div>
+
+</div>
+
+<div class="macro-grid">
+
+<div class="macro-card">
+<div class="macro-name">FEAR:</div>
+<div
+id="rightFear"
+class="macro-value"
 >
 Loading...
 </div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">DXY:</div>
+<div
+id="rightDxy"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">DOW:</div>
+<div
+id="rightDow"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">VIX:</div>
+<div
+id="rightVix"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">GOLD:</div>
+<div
+id="rightGold"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">US10Y:</div>
+<div
+id="rightUs10y"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">MARKET FEAR:</div>
+<div
+id="rightFearText"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+<div class="macro-card">
+<div class="macro-name">UPDATE:</div>
+<div
+id="rightUpdate"
+class="macro-value"
+>
+Loading...
+</div>
+</div>
+
+</div>
 
 </div>
 
 </div>
 
 <div
-id="macroArea"
+id="bottomLoading"
 class="bottom-panel"
 >
 Loading...
