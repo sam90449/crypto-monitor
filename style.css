@@ -1,178 +1,186 @@
-<!DOCTYPE html>
-<html lang="en">
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-<head>
+body {
+    background: #050b14;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
 
-    <meta charset="UTF-8">
+.main-title {
+    font-size: 52px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+.update-time {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #bbbbbb;
+}
 
-    <title>
-        Crypto Monitor
-    </title>
+.main-container {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+.coin-panel {
+    flex: 1;
+    background: #111827;
+    border-radius: 20px;
+    padding: 25px;
+}
 
-</head>
+.coin-title {
+    font-size: 42px;
+    font-weight: bold;
+    margin-bottom: 25px;
+}
 
-<body>
+.input-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
 
-    <div class="main-title">
-        DUAL COIN 1-3H AI PREDICTOR
-    </div>
+input {
+    flex: 1;
+    background: black;
+    color: #00ffcc;
+    border: 2px solid #333333;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 34px;
+}
 
-    <div
-        id="updateTime"
-        class="update-time"
-    >
-        HK UPDATE TIME
-    </div>
+button {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 24px;
+    font-size: 30px;
+    cursor: pointer;
+}
 
-    <div class="main-container">
+button:hover {
+    background: #059669;
+}
 
-        <!-- LEFT PANEL -->
+.price {
+    margin-bottom: 25px;
+}
 
-        <div class="coin-panel">
+.coin-symbol {
+    font-size: 48px;
+    color: #00ffcc;
+    margin-bottom: 20px;
+}
 
-            <div class="coin-title">
-                LEFT COIN
-            </div>
+.coin-value {
+    font-size: 64px;
+    color: #00ffcc;
+    font-weight: bold;
+}
 
-            <div class="input-row">
+.prediction {
+    margin-bottom: 25px;
+}
 
-                <input
-                    id="leftInput"
-                    value="BTC"
-                    type="text"
-                >
+.prediction-title {
+    font-size: 32px;
+    margin-bottom: 15px;
+}
 
-                <button
-                    onclick="loadCoin('left')"
-                >
-                    LOAD
-                </button>
+.prediction-status {
+    font-size: 44px;
+    font-weight: bold;
+}
 
-            </div>
+.predict-boxes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
 
-            <div
-                id="leftPrice"
-                class="price"
-            >
-                Loading...
-            </div>
+.mini-box {
+    background: #1f2937;
+    border-radius: 14px;
+    padding: 18px;
+}
 
-            <div
-                id="leftPrediction"
-                class="prediction"
-            >
-                Loading...
-            </div>
+.mini-title {
+    font-size: 22px;
+    color: #aaaaaa;
+    margin-bottom: 10px;
+}
 
-            <div
-                id="leftBoxes"
-                class="predict-boxes"
-            >
-            </div>
+.mini-value {
+    font-size: 30px;
+    font-weight: bold;
+    word-break: break-word;
+}
 
-            <div
-                id="leftInfo"
-                class="info"
-            >
-                Loading...
-            </div>
+.info {
+    background: #0f172a;
+    border-radius: 16px;
+    padding: 20px;
+}
 
-        </div>
+.global-line {
+    font-size: 28px;
+    margin-bottom: 15px;
+}
 
-        <!-- RIGHT PANEL -->
+.macro-panel {
+    background: #111827;
+    border-radius: 20px;
+    padding: 25px;
+}
 
-        <div class="coin-panel">
+.macro-title {
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
 
-            <div class="coin-title">
-                RIGHT COIN
-            </div>
+.macro-content {
+    font-size: 28px;
+    line-height: 1.8;
+}
 
-            <div class="input-row">
+@media (max-width: 1200px) {
 
-                <input
-                    id="rightInput"
-                    value="ETH"
-                    type="text"
-                >
+    .main-container {
+        flex-direction: column;
+    }
 
-                <button
-                    onclick="loadCoin('right')"
-                >
-                    LOAD
-                </button>
+    .coin-panel {
+        width: 100%;
+    }
 
-            </div>
+    .main-title {
+        font-size: 40px;
+    }
 
-            <div
-                id="rightPrice"
-                class="price"
-            >
-                Loading...
-            </div>
+    .coin-title {
+        font-size: 34px;
+    }
 
-            <div
-                id="rightPrediction"
-                class="prediction"
-            >
-                Loading...
-            </div>
+    .coin-symbol {
+        font-size: 38px;
+    }
 
-            <div
-                id="rightBoxes"
-                class="predict-boxes"
-            >
-            </div>
+    .coin-value {
+        font-size: 50px;
+    }
 
-            <div
-                id="rightInfo"
-                class="info"
-            >
-                Loading...
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- GLOBAL MACRO -->
-
-    <div
-        id="macroArea"
-        class="macro-panel"
-    >
-
-        <div class="macro-title">
-            GLOBAL MACRO DATA
-        </div>
-
-        <div class="macro-content">
-
-            TOTAL MARKET CAP
-
-            <br><br>
-
-            BTC DOMINANCE
-
-            <br><br>
-
-            FEAR & GREED INDEX
-
-        </div>
-
-    </div>
-
-    <script src="script.js"></script>
-
-</body>
-
-</html>
+}
