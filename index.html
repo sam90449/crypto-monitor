@@ -1,25 +1,42 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DUAL COIN 1-3H AI PREDICTOR</title>
 
-<link rel="stylesheet" href="style.css">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+/>
+
+<title>
+DUAL COIN 1-3H AI PREDICTOR
+</title>
+
+<link
+rel="stylesheet"
+href="style.css"
+/>
 
 </head>
 
 <body>
 
-<div class="main-title">
-DUAL COIN 1-3H AI PREDICTOR
+<div class="top-title">
+    DUAL COIN 1-3H AI PREDICTOR
 </div>
 
-<div class="update-time" id="updateTime">
+<div
+class="update-time"
+id="updateTime"
+>
 HK UPDATE TIME
 </div>
 
 <div class="main-wrapper">
+
+    <!-- LEFT -->
 
     <div class="coin-panel">
 
@@ -28,91 +45,144 @@ HK UPDATE TIME
         </div>
 
         <div class="input-row">
-            <input id="leftInput" value="NIGHT">
-            <button onclick="loadCoin('left')">LOAD</button>
+
+            <input
+            id="leftInput"
+            value="NIGHT"
+            />
+
+            <button
+            onclick="loadCoin('left')"
+            >
+            LOAD
+            </button>
+
         </div>
 
-        <div class="symbol" id="leftSymbol">
-            NIGHTUSDT : 0.00000
+        <div
+        class="symbol"
+        id="leftSymbol"
+        >
+        NIGHTUSDT : 0.00000
         </div>
 
         <div class="matrix-box">
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲1%</div>
 
-                <div class="matrix-cell active-green"></div>
+                <div class="matrix-label up">
+                    ▲1%
+                </div>
+
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲1.5%</div>
+
+                <div class="matrix-label up">
+                    ▲1.5%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲2%</div>
+
+                <div class="matrix-label up">
+                    ▲2%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼1%</div>
+
+                <div class="matrix-label down">
+                    ▼1%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼1.5%</div>
+
+                <div class="matrix-label down">
+                    ▼1.5%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼2%</div>
+
+                <div class="matrix-label down">
+                    ▼2%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
         </div>
 
-        <div class="prediction" id="leftPrediction">
-            1-3H Prediction：低勝算率
+        <div
+        class="prediction"
+        id="leftPrediction"
+        >
+        1-3H AI PREDICTION：中性震盪
         </div>
 
-        <div class="mini-info" id="leftInfo">
+        <div
+        class="info-box"
+        id="leftInfo"
+        >
 SYMBOL: NIGHTUSDT
 
-PRICE: 0.03486
+PRICE: 0.00000
 
-5 MA: 0.0349
-15 MA: 0.0351
-30 MA: 0.0352
+5 MA: 0.00000
+15 MA: 0.00000
+30 MA: 0.00000
+
+VOL MA20:
+0
+
+SCORE:
+0
         </div>
 
     </div>
 
-    <div class="middle-separator">
+    <!-- CENTER -->
+
+    <div class="middle-line">
         ||||
     </div>
+
+    <!-- RIGHT -->
 
     <div class="coin-panel">
 
@@ -121,89 +191,140 @@ PRICE: 0.03486
         </div>
 
         <div class="input-row">
-            <input id="rightInput" value="BTC">
-            <button onclick="loadCoin('right')">LOAD</button>
+
+            <input
+            id="rightInput"
+            value="BTC"
+            />
+
+            <button
+            onclick="loadCoin('right')"
+            >
+            LOAD
+            </button>
+
         </div>
 
-        <div class="symbol" id="rightSymbol">
-            BTCUSDT : 0.00000
+        <div
+        class="symbol"
+        id="rightSymbol"
+        >
+        BTCUSDT : 0.00000
         </div>
 
         <div class="matrix-box">
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲1%</div>
 
-                <div class="matrix-cell active-green"></div>
+                <div class="matrix-label up">
+                    ▲1%
+                </div>
+
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲1.5%</div>
+
+                <div class="matrix-label up">
+                    ▲1.5%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label up">▲2%</div>
+
+                <div class="matrix-label up">
+                    ▲2%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼1%</div>
+
+                <div class="matrix-label down">
+                    ▼1%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼1.5%</div>
+
+                <div class="matrix-label down">
+                    ▼1.5%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
             <div class="matrix-row">
-                <div class="matrix-label down">▼2%</div>
+
+                <div class="matrix-label down">
+                    ▼2%
+                </div>
 
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
                 <div class="matrix-cell"></div>
+
             </div>
 
         </div>
 
-        <div class="prediction" id="rightPrediction">
-            1-3H Prediction：+0.03%
+        <div
+        class="prediction"
+        id="rightPrediction"
+        >
+        1-3H AI PREDICTION：中性震盪
         </div>
 
-        <div class="mini-info" id="rightInfo">
+        <div
+        class="info-box"
+        id="rightInfo"
+        >
 SYMBOL: BTCUSDT
 
-PRICE: 73530.01
+PRICE: 0.00000
 
-5 MA: 73534.5760
-15 MA: 73435.9213
-30 MA: 73406.3973
+5 MA: 0.00000
+15 MA: 0.00000
+30 MA: 0.00000
+
+VOL MA20:
+0
+
+SCORE:
+0
         </div>
 
     </div>
 
 </div>
+
+<!-- MACRO -->
 
 <div class="macro-box">
 
@@ -212,27 +333,27 @@ PRICE: 73530.01
     </div>
 
     <div class="macro-score">
-        ◎ 宏觀方向：中性震盪 | SCORE: -1
+        ◎ 宏觀方向：中性震盪 | SCORE: 0
     </div>
 
     <div class="macro-info">
-        DXY美元指數: 99.35 (+0.15%)
+        DXY美元指數: 99.35
     </div>
 
     <div class="macro-info green">
-        道瓊斯指數: 50,644.28 (+0.36%)
+        道瓊斯指數: 50,644.28
     </div>
 
     <div class="macro-info green">
-        美債10年期: 0.45% (-0.27%)
+        美債10年期: 4.45%
     </div>
 
     <div class="macro-info red">
-        恐慌指數(VIX): 16.68 (+2.39%)
+        恐慌指數(VIX): 16.68
     </div>
 
     <div class="macro-info red">
-        黃金: 4423.10 (-1.30%)
+        黃金: 3315.10
     </div>
 
 </div>
