@@ -1,88 +1,144 @@
 async function loadCoin(side) {
-    const symbol = document
-        .getElementById(side + "-input")
-        .value
-        .trim()
-        .toUpperCase();
 
-    const resultBox = document.getElementById(side + "-result");
+    const inputId =
+        side === "left"
+            ? "leftInput"
+            : "rightInput";
 
-    resultBox.innerHTML = "Loading...";
+    const priceId =
+        side === "left"
+            ? "leftPrice"
+            : "rightPrice";
+
+    const predictionId =
+        side === "left"
+            ? "leftPrediction"
+            : "rightPrediction";
+
+    const boxesId =
+        side === "left"
+            ? "leftBoxes"
+            : "rightBoxes";
+
+    const infoId =
+        side === "left"
+            ? "leftInfo"
+            : "rightInfo";
+
+    const symbol =
+        document
+            .getElementById(inputId)
+            .value
+            .trim()
+            .toUpperCase();
+
+    document.getElementById(priceId).innerHTML = "Loading...";
+    document.getElementById(predictionId).innerHTML = "Loading...";
+    document.getElementById(boxesId).innerHTML = "";
+    document.getElementById(infoId).innerHTML = "Loading...";
 
     try {
-        const response = await fetch("/api/macro");
-        const data = await response.json();
 
-        if (data.error) {
-            resultBox.innerHTML = data.error;
-            return;
-        }
+        const response =
+            await fetch("/api/macro");
+
+        const data =
+            await response.json();
 
         let coinPrice = "N/A";
 
         if (symbol === "BTC") {
             coinPrice = data.btc;
-        } else if (symbol === "ETH") {
+        }
+        else if (symbol === "ETH") {
             coinPrice = data.eth;
-        } else {
+        }
+        else {
             coinPrice = "UNSUPPORTED";
         }
 
-        resultBox.innerHTML = `
-            <div class="coin-title">
-                ${symbol}/USDT
-            </div>
-
+        document.getElementById(priceId).innerHTML =
+            `
             <div class="coin-price">
-                PRICE:
-                <br>
+                ${symbol}/USDT
+                <br><br>
                 ${coinPrice}
             </div>
+            `;
 
-            <br>
+        document.getElementById(predictionId).innerHTML =
+            `
+            1-3H AI PREDICTION:
+            <br><br>
+            ${data.status}
+            ${data.icon}
+            `;
 
-            <div class="coin-info">
-                24H CHANGE:
+        document.getElementById(boxesId).innerHTML =
+            `
+            <div class="predict-box">
+                FEAR:
                 <br>
-                ${data.btcChange}
+                ${data.fear}
             </div>
 
-            <br>
-
-            <div class="coin-info">
-                MARKET FEAR:
+            <div class="predict-box">
+                BTC DOM:
                 <br>
-                ${data.fearText}
+                ${data.btcDom}
             </div>
 
-            <br>
-
-            <div class="coin-info">
-                MARKET STATUS:
+            <div class="predict-box">
+                VOLUME:
                 <br>
-                ${data.status} ${data.icon}
+                ${data.btcVolume}
             </div>
+            `;
 
-            <br>
+        document.getElementById(infoId).innerHTML =
+            `
+            BTC CHANGE:
+            ${data.btcChange}
+            <br><br>
 
-            <div class="coin-update">
-                UPDATE:
-                <br>
-                ${data.updateTime}
-            </div>
-        `;
-    } catch (err) {
-        resultBox.innerHTML = `
-            <div style="color:red;">
-                LOAD ERROR
-                <br><br>
-                ${err}
-            </div>
-        `;
+            FEAR TEXT:
+            ${data.fearText}
+            <br><br>
+
+            UPDATE:
+            ${data.updateTime}
+            `;
+
+        document.getElementById("updateTime").innerHTML =
+            "HK UPDATE TIME: " + data.updateTime;
+
+        document.getElementById("macroArea").innerHTML =
+            `
+            TOTAL MARKET CAP:
+            ${data.totalCap}
+            <br><br>
+
+            BTC DOMINANCE:
+            ${data.btcDom}
+            <br><br>
+
+            MARKET FEAR:
+            ${data.fearText}
+            `;
+    }
+    catch (error) {
+
+        document.getElementById(priceId).innerHTML =
+            "LOAD FAILED";
+
+        document.getElementById(predictionId).innerHTML =
+            error.toString();
     }
 }
 
 window.onload = function () {
+
     loadCoin("left");
+
     loadCoin("right");
 };
