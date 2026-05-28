@@ -1,677 +1,366 @@
-const BINANCE_BASE = "https://api.binance.com/api/v3";
+const API_URL =
+"https://wispy-dawn-5bf8.jacky12345cheung.workers.dev/";
 
-const MACRO_API = {
-    fear: "https://api.alternative.me/fng/?limit=1"
-};
+function safeSetText(id, text) {
 
-const DEFAULT_MACRO = {
-    dxy: 99.35,
-    dow: 50644.28,
-    us10y: 4.45,
-    vix: 16.68,
-    gold: 3315.10
-};
+    const el = document.getElementById(id);
 
-let MACRO = { ...DEFAULT_MACRO };
-
-async function safeFetch(url){
-    try{
-        const res = await fetch(url);
-
-        if(!res.ok){
-            throw new Error("FETCH ERROR");
-        }
-
-        return await res.json();
-
-    }catch(err){
-        console.error(err);
-        return null;
+    if (el) {
+        el.innerText = text;
     }
 }
 
-async function fetchPrice(symbol){
+function safeSetHTML(id, html) {
 
-    try{
+    const el = document.getElementById(id);
 
-        const data = await safeFetch(
-            `${BINANCE_BASE}/ticker/price?symbol=${symbol.toUpperCase()}USDT`
-        );
-
-        if(!data || !data.price){
-            return 0;
-        }
-
-        return parseFloat(data.price);
-
-    }catch(e){
-
-        console.error(e);
-        return 0;
+    if (el) {
+        el.innerHTML = html;
     }
 }
 
-async function fetch24h(symbol){
+function createBlocks(active, color) {
 
-    try{
+    let html = "";
 
-        const data = await safeFetch(
-            `${BINANCE_BASE}/ticker/24hr?symbol=${symbol.toUpperCase()}USDT`
-        );
+    for (let i = 0; i < 4; i++) {
 
-        if(!data){
-            return null;
-        }
-
-        return data;
-
-    }catch(e){
-
-        console.error(e);
-        return null;
+        html += `
+        <div class="block ${i < active ? "active" : ""}"
+             style="${i < active ? `background:${color};` : ""}">
+        </div>
+        `;
     }
+
+    return html;
 }
 
-async function fetchKlines(symbol, interval="15m", limit=120){
+function setBlocks(score) {
 
-    try{
+    let up1 = 0;
+    let up15 = 0;
+    let up2 = 0;
 
-        const data = await safeFetch(
-            `${BINANCE_BASE}/klines?symbol=${symbol.toUpperCase()}USDT&interval=${interval}&limit=${limit}`
-        );
+    let down1 = 0;
+    let down15 = 0;
+    let down2 = 0;
 
-        if(!data || !Array.isArray(data)){
-            return [];
-        }
+    if (score >= 5) {
 
-        return data;
+        up1 = 4;
+        up15 = 4;
+        up2 = 4;
 
-    }catch(e){
+    } else if (score >= 2) {
 
-        console.error(e);
-        return [];
+        up1 = 3;
+        up15 = 2;
+        up2 = 1;
+
+    } else if (score >= -1) {
+
+        up1 = 1;
+        down1 = 1;
+
+    } else if (score >= -4) {
+
+        down1 = 2;
+        down15 = 3;
+        down2 = 2;
+
+    } else {
+
+        down1 = 1;
+        down15 = 2;
+        down2 = 3;
     }
+
+    safeSetHTML(
+        "btc_up_1",
+        createBlocks(up1, "#00ff99")
+    );
+
+    safeSetHTML(
+        "btc_up_15",
+        createBlocks(up15, "#00ff99")
+    );
+
+    safeSetHTML(
+        "btc_up_2",
+        createBlocks(up2, "#00ff99")
+    );
+
+    safeSetHTML(
+        "btc_down_1",
+        createBlocks(down1, "#ff3355")
+    );
+
+    safeSetHTML(
+        "btc_down_15",
+        createBlocks(down15, "#ff3355")
+    );
+
+    safeSetHTML(
+        "btc_down_2",
+        createBlocks(down2, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_up_1",
+        createBlocks(up1 >= 2 ? 2 : 1, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_up_15",
+        createBlocks(up15 >= 2 ? 1 : 0, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_up_2",
+        createBlocks(up2 >= 2 ? 1 : 0, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_down_1",
+        createBlocks(down1 >= 2 ? 2 : 0, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_down_15",
+        createBlocks(down15 >= 2 ? 2 : 0, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_down_2",
+        createBlocks(down2 >= 2 ? 2 : 0, "#ff3355")
+    );
 }
 
-function calcMA(klines, period){
+function getDirection(score) {
 
-    try{
-
-        const closes = klines
-            .slice(-period)
-            .map(k => parseFloat(k[4]));
-
-        if(closes.length === 0){
-            return 0;
-        }
-
-        const sum = closes.reduce((a,b)=>a+b,0);
-
-        return sum / closes.length;
-
-    }catch(e){
-
-        console.error(e);
-        return 0;
-    }
-}
-
-function calcVolumeMA(klines, period){
-
-    try{
-
-        const volumes = klines
-            .slice(-period)
-            .map(k => parseFloat(k[5]));
-
-        if(volumes.length === 0){
-            return 0;
-        }
-
-        const sum = volumes.reduce((a,b)=>a+b,0);
-
-        return sum / volumes.length;
-
-    }catch(e){
-
-        console.error(e);
-        return 0;
-    }
-}
-
-function getLatestVolume(klines){
-
-    try{
-
-        if(klines.length === 0){
-            return 0;
-        }
-
-        return parseFloat(
-            klines[klines.length - 1][5]
-        );
-
-    }catch(e){
-
-        console.error(e);
-        return 0;
-    }
-}
-
-function calcRSI(klines, period = 14){
-
-    try{
-
-        const closes = klines.map(
-            k => parseFloat(k[4])
-        );
-
-        if(closes.length < period + 1){
-            return 50;
-        }
-
-        let gains = 0;
-        let losses = 0;
-
-        for(let i = closes.length - period; i < closes.length; i++){
-
-            const diff = closes[i] - closes[i - 1];
-
-            if(diff >= 0){
-                gains += diff;
-            }else{
-                losses += Math.abs(diff);
-            }
-        }
-
-        if(losses === 0){
-            return 100;
-        }
-
-        const rs = gains / losses;
-
-        return 100 - (100 / (1 + rs));
-
-    }catch(e){
-
-        console.error(e);
-        return 50;
-    }
-}
-
-function calcMomentum(price, ma5, ma15, ma30){
-
-    let score = 0;
-
-    if(price > ma5){
-        score += 1;
-    }else{
-        score -= 1;
-    }
-
-    if(ma5 > ma15){
-        score += 1;
-    }else{
-        score -= 1;
-    }
-
-    if(ma15 > ma30){
-        score += 1;
-    }else{
-        score -= 1;
-    }
-
-    return score;
-}
-
-function calcVolumeScore(currentVol, volMA){
-
-    if(currentVol > volMA * 2){
-        return 2;
-    }
-
-    if(currentVol > volMA * 1.3){
-        return 1;
-    }
-
-    if(currentVol < volMA * 0.7){
-        return -1;
-    }
-
-    return 0;
-}
-
-function calcRSIScore(rsi){
-
-    if(rsi >= 75){
-        return -2;
-    }
-
-    if(rsi >= 65){
-        return -1;
-    }
-
-    if(rsi <= 25){
-        return 2;
-    }
-
-    if(rsi <= 35){
-        return 1;
-    }
-
-    return 0;
-}
-
-function getMacroScore(){
-
-    let score = 0;
-
-    if(MACRO.dxy > 104){
-        score -= 2;
-    }else if(MACRO.dxy > 100){
-        score -= 1;
-    }else{
-        score += 1;
-    }
-
-    if(MACRO.vix > 25){
-        score -= 2;
-    }else if(MACRO.vix > 18){
-        score -= 1;
-    }else{
-        score += 1;
-    }
-
-    if(MACRO.gold > 3400){
-        score -= 1;
-    }
-
-    if(MACRO.dow > 50000){
-        score += 1;
-    }else{
-        score -= 1;
-    }
-
-    return score;
-}
-
-function getPrediction(score){
-
-    if(score >= 6){
+    if (score >= 5) {
 
         return {
-            text: "強烈看升 ▲",
+            title: "強勢看漲",
+            risk: "Strong Pump",
             color: "#00ff99",
-            active: [
-                "up1",
-                "up15",
-                "up2"
-            ]
+            emoji: "🟢"
         };
     }
 
-    if(score >= 3){
+    if (score >= 2) {
 
         return {
-            text: "輕微看升 ●",
-            color: "#00ffff",
-            active: [
-                "up1",
-                "up15"
-            ]
+            title: "偏強看漲",
+            risk: "Bullish",
+            color: "#00ffee",
+            emoji: "🟢"
         };
     }
 
-    if(score <= -6){
+    if (score >= -1) {
 
         return {
-            text: "強烈看跌 ▼",
-            color: "#ff3355",
-            active: [
-                "down1",
-                "down15",
-                "down2"
-            ]
+            title: "中性震盪",
+            risk: "No Major Alert",
+            color: "#ffee00",
+            emoji: "🟡"
         };
     }
 
-    if(score <= -3){
+    if (score >= -4) {
 
         return {
-            text: "輕微看跌 ●",
-            color: "#ffaa00",
-            active: [
-                "down1",
-                "down15"
-            ]
+            title: "偏弱看跌",
+            risk: "Bearish",
+            color: "#ff6688",
+            emoji: "🔴"
         };
     }
 
     return {
-        text: "中性震盪 ◎",
-        color: "yellow",
-        active: []
+        title: "強勢看跌",
+        risk: "Major Dump Risk",
+        color: "#ff3355",
+        emoji: "🔴"
     };
 }
 
-function clearMatrix(panel){
+async function fetchBinance() {
 
-    const cells = panel.querySelectorAll(".matrix-cell");
+    const res = await fetch(
+        "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+    );
 
-    cells.forEach(cell => {
+    return await res.json();
+}
 
-        cell.classList.remove(
-            "active-green",
-            "active-red"
+async function fetchGlobal() {
+
+    const res = await fetch(API_URL);
+
+    return await res.json();
+}
+
+function calcScore(g, btcChange) {
+
+    let score = 0;
+
+    if (g.dxy.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.vix.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.gold.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.us10y.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.dow.change > 0) score += 1;
+    else score -= 1;
+
+    if (g.fear.value <= 25) score -= 2;
+
+    if (g.fear.value >= 75) score += 2;
+
+    if (btcChange > 0) score += 1;
+    else score -= 1;
+
+    return score;
+}
+
+async function loadData() {
+
+    try {
+
+        safeSetText(
+            "alertBox",
+            "Loading..."
         );
-    });
-}
-
-function activateMatrix(panel, active){
-
-    clearMatrix(panel);
-
-    const map = {
-        up1:0,
-        up15:4,
-        up2:8,
-        down1:12,
-        down15:16,
-        down2:20
-    };
-
-    active.forEach(a => {
-
-        const index = map[a];
-
-        if(index === undefined){
-            return;
-        }
-
-        const cell = panel.querySelectorAll(".matrix-cell")[index];
-
-        if(!cell){
-            return;
-        }
-
-        if(a.includes("down")){
-            cell.classList.add("active-red");
-        }else{
-            cell.classList.add("active-green");
-        }
-    });
-}
-
-async function fetchFearGreed(){
-
-    try{
-
-        const data = await safeFetch(MACRO_API.fear);
-
-        if(
-            data &&
-            data.data &&
-            data.data.length > 0
-        ){
-
-            return {
-                value: data.data[0].value,
-                text: data.data[0].value_classification
-            };
-        }
-
-        return {
-            value: "N/A",
-            text: "UNKNOWN"
-        };
-
-    }catch(e){
-
-        console.error(e);
-
-        return {
-            value: "N/A",
-            text: "UNKNOWN"
-        };
-    }
-}
-
-function updateHKTime(){
-
-    const now = new Date();
-
-    const hk = now.toLocaleString(
-        "en-GB",
-        {
-            timeZone:"Asia/Hong_Kong",
-            hour12:false
-        }
-    );
-
-    const el = document.getElementById("updateTime");
-
-    if(el){
-        el.innerText = `HK UPDATE TIME : ${hk}`;
-    }
-}
-
-function formatNumber(n){
-
-    if(!isFinite(n)){
-        return "0";
-    }
-
-    return Number(n).toLocaleString(
-        "en-US",
-        {
-            maximumFractionDigits:4
-        }
-    );
-}
-
-async function analyzeCoin(side){
-
-    try{
-
-        const input = document.getElementById(`${side}Input`);
-
-        if(!input){
-            return;
-        }
-
-        const symbol = input.value
-            .replace("USDT","")
-            .toUpperCase()
-            .trim();
-
-        const panel = document.getElementById(`${side}Panel`);
-
-        const priceEl = document.getElementById(`${side}Price`);
-        const symbolEl = document.getElementById(`${side}Symbol`);
-        const predictionEl = document.getElementById(`${side}Prediction`);
-        const infoEl = document.getElementById(`${side}Info`);
-
-        symbolEl.innerText = `${symbol}USDT`;
-        priceEl.innerText = "LOADING...";
 
         const [
-            price,
-            klines5m,
-            klines15m,
-            klines30m,
-            stat24h,
-            fearData
+            btc,
+            globalData
         ] = await Promise.all([
-            fetchPrice(symbol),
-            fetchKlines(symbol, "5m", 120),
-            fetchKlines(symbol, "15m", 120),
-            fetchKlines(symbol, "30m", 120),
-            fetch24h(symbol),
-            fetchFearGreed()
+            fetchBinance(),
+            fetchGlobal()
         ]);
 
-        if(price <= 0){
+        if (!globalData || !globalData.success) {
 
-            priceEl.innerText = "LOAD ERROR";
-
-            predictionEl.innerText = "API ERROR";
+            safeSetText(
+                "alertBox",
+                "Worker API Error"
+            );
 
             return;
         }
 
-        priceEl.innerText = formatNumber(price);
+        const btcPrice =
+            Number(btc.lastPrice);
 
-        const ma5 = calcMA(klines5m, 5);
-        const ma15 = calcMA(klines15m, 15);
-        const ma30 = calcMA(klines30m, 30);
+        const btcChange =
+            Number(btc.priceChangePercent);
 
-        const volumeMA = calcVolumeMA(klines15m, 20);
+        const btcVolume =
+            Number(btc.volume);
 
-        const currentVolume = getLatestVolume(klines15m);
+        const score =
+            calcScore(globalData, btcChange);
 
-        const rsi = calcRSI(klines15m);
+        const dir =
+            getDirection(score);
 
-        const momentumScore = calcMomentum(
-            price,
-            ma5,
-            ma15,
-            ma30
+        safeSetText(
+            "alertBox",
+            `⚠ ${dir.risk}`
         );
 
-        const volumeScore = calcVolumeScore(
-            currentVolume,
-            volumeMA
+        safeSetText(
+            "predictionText",
+            `短線預測 | 15m: ${(btcChange / 18).toFixed(2)}% | 30m: ${(btcChange / 9).toFixed(2)}%`
         );
 
-        const rsiScore = calcRSIScore(rsi);
+        safeSetText(
+            "btcPrice",
+            `BTC: ${btcPrice.toLocaleString(undefined,{
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            })} USDT (${btcChange.toFixed(2)}%)`
+        );
 
-        const macroScore = getMacroScore();
+        safeSetText(
+            "btcVolume",
+            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`
+        );
 
-        const totalScore =
-            momentumScore +
-            volumeScore +
-            rsiScore +
-            macroScore;
+        safeSetHTML(
+            "macroText",
+            `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`
+        );
 
-        const prediction = getPrediction(totalScore);
+        const macro =
+            document.getElementById("macroText");
 
-        predictionEl.innerText = prediction.text;
-        predictionEl.style.color = prediction.color;
+        if (macro) {
+            macro.style.color = dir.color;
+        }
 
-        activateMatrix(panel, prediction.active);
+        safeSetText(
+            "macroReason",
+            "全球宏觀數據分析中..."
+        );
 
-        const change24h = stat24h
-            ? parseFloat(stat24h.priceChangePercent)
-            : 0;
+        safeSetText(
+            "dxy",
+            `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${globalData.dxy.change.toFixed(2)}%)`
+        );
 
-        const high24h = stat24h
-            ? parseFloat(stat24h.highPrice)
-            : 0;
+        safeSetText(
+            "dow",
+            `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${globalData.dow.change.toFixed(2)}%)`
+        );
 
-        const low24h = stat24h
-            ? parseFloat(stat24h.lowPrice)
-            : 0;
+        safeSetText(
+            "us10y",
+            `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${globalData.us10y.change.toFixed(2)}%)`
+        );
 
-        infoEl.innerText =
-`SYMBOL : ${symbol}USDT
-PRICE : ${formatNumber(price)}
-24H % : ${change24h.toFixed(2)}%
-24H HIGH : ${formatNumber(high24h)}
-24H LOW : ${formatNumber(low24h)}
+        safeSetText(
+            "vix",
+            `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${globalData.vix.change.toFixed(2)}%)`
+        );
 
-5M MA : ${formatNumber(ma5)}
-15M MA : ${formatNumber(ma15)}
-30M MA : ${formatNumber(ma30)}
+        safeSetText(
+            "gold",
+            `黃金: ${globalData.gold.value.toFixed(2)} (${globalData.gold.change.toFixed(2)}%)`
+        );
 
-VOLUME : ${formatNumber(currentVolume)}
-VOL MA : ${formatNumber(volumeMA)}
+        safeSetText(
+            "fear",
+            `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`
+        );
 
-RSI : ${rsi.toFixed(2)}
-MOMENTUM SCORE : ${momentumScore}
-VOLUME SCORE : ${volumeScore}
-RSI SCORE : ${rsiScore}
-MACRO SCORE : ${macroScore}
+        safeSetText(
+            "updateTime",
+            globalData.updateTime || ""
+        );
 
-TOTAL SCORE : ${totalScore}
+        setBlocks(score);
 
-FEAR : ${fearData.value}
-FEAR TEXT : ${fearData.text}
+    } catch (e) {
 
-DXY : ${MACRO.dxy}
-DOW : ${MACRO.dow}
-VIX : ${MACRO.vix}
-GOLD : ${MACRO.gold}
-US10Y : ${MACRO.us10y}`;
+        console.log(e);
 
-    }catch(e){
-
-        console.error(e);
+        safeSetText(
+            "alertBox",
+            "Load Failed"
+        );
     }
 }
 
-async function renderMacroBox(){
+loadData();
 
-    const macroScore = getMacroScore();
-
-    const el = document.getElementById("macroScore");
-
-    if(!el){
-        return;
-    }
-
-    let text = "";
-
-    if(macroScore >= 2){
-        text = "MACRO RISK-ON ▲";
-    }else if(macroScore <= -2){
-        text = "MACRO RISK-OFF ▼";
-    }else{
-        text = "MACRO NEUTRAL ◎";
-    }
-
-    el.innerText =
-`${text}
-
-DXY : ${MACRO.dxy}
-DOW : ${MACRO.dow}
-VIX : ${MACRO.vix}
-GOLD : ${MACRO.gold}
-US10Y : ${MACRO.us10y}`;
-}
-
-async function refreshAll(){
-
-    await Promise.all([
-        analyzeCoin("left"),
-        analyzeCoin("right"),
-        renderMacroBox()
-    ]);
-}
-
-function bindButtons(){
-
-    const leftBtn = document.getElementById("leftBtn");
-    const rightBtn = document.getElementById("rightBtn");
-
-    if(leftBtn){
-        leftBtn.onclick = ()=>{
-            analyzeCoin("left");
-        };
-    }
-
-    if(rightBtn){
-        rightBtn.onclick = ()=>{
-            analyzeCoin("right");
-        };
-    }
-}
-
-updateHKTime();
-
-setInterval(updateHKTime, 1000);
-
-bindButtons();
-
-refreshAll();
-
-setInterval(refreshAll, 30000);
+setInterval(loadData, 15000);
