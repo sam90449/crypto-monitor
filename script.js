@@ -1,6 +1,24 @@
 const API_URL =
 "https://wispy-dawn-5bf8.jacky12345cheung.workers.dev/";
 
+function safeSetText(id, text) {
+
+    const el = document.getElementById(id);
+
+    if (el) {
+        el.innerText = text;
+    }
+}
+
+function safeSetHTML(id, html) {
+
+    const el = document.getElementById(id);
+
+    if (el) {
+        el.innerHTML = html;
+    }
+}
+
 function createBlocks(active, color) {
 
     let html = "";
@@ -57,23 +75,65 @@ function setBlocks(score) {
         down2 = 3;
     }
 
-    document.getElementById("up1").innerHTML =
-        createBlocks(up1, "#00ff99");
+    safeSetHTML(
+        "btc_up_1",
+        createBlocks(up1, "#00ff99")
+    );
 
-    document.getElementById("up15").innerHTML =
-        createBlocks(up15, "#00ff99");
+    safeSetHTML(
+        "btc_up_15",
+        createBlocks(up15, "#00ff99")
+    );
 
-    document.getElementById("up2").innerHTML =
-        createBlocks(up2, "#00ff99");
+    safeSetHTML(
+        "btc_up_2",
+        createBlocks(up2, "#00ff99")
+    );
 
-    document.getElementById("down1").innerHTML =
-        createBlocks(down1, "#ff3355");
+    safeSetHTML(
+        "btc_down_1",
+        createBlocks(down1, "#ff3355")
+    );
 
-    document.getElementById("down15").innerHTML =
-        createBlocks(down15, "#ff3355");
+    safeSetHTML(
+        "btc_down_15",
+        createBlocks(down15, "#ff3355")
+    );
 
-    document.getElementById("down2").innerHTML =
-        createBlocks(down2, "#ff3355");
+    safeSetHTML(
+        "btc_down_2",
+        createBlocks(down2, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_up_1",
+        createBlocks(up1 >= 2 ? 2 : 1, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_up_15",
+        createBlocks(up15 >= 2 ? 1 : 0, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_up_2",
+        createBlocks(up2 >= 2 ? 1 : 0, "#00ff99")
+    );
+
+    safeSetHTML(
+        "dow_down_1",
+        createBlocks(down1 >= 2 ? 2 : 0, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_down_15",
+        createBlocks(down15 >= 2 ? 2 : 0, "#ff3355")
+    );
+
+    safeSetHTML(
+        "dow_down_2",
+        createBlocks(down2 >= 2 ? 2 : 0, "#ff3355")
+    );
 }
 
 function getDirection(score) {
@@ -137,23 +197,9 @@ async function fetchBinance() {
 
 async function fetchGlobal() {
 
-    const res = await fetch(API_URL, {
-        method: "GET"
-    });
+    const res = await fetch(API_URL);
 
-    const text = await res.text();
-
-    try {
-
-        return JSON.parse(text);
-
-    } catch {
-
-        console.log("Worker回傳不是JSON:");
-        console.log(text);
-
-        return null;
-    }
+    return await res.json();
 }
 
 function calcScore(g, btcChange) {
@@ -189,8 +235,10 @@ async function loadData() {
 
     try {
 
-        document.getElementById("riskText").innerText =
-            "Loading...";
+        safeSetText(
+            "alertBox",
+            "Loading..."
+        );
 
         const [
             btc,
@@ -202,8 +250,10 @@ async function loadData() {
 
         if (!globalData || !globalData.success) {
 
-            document.getElementById("riskText").innerText =
-                "Worker API Error";
+            safeSetText(
+                "alertBox",
+                "Worker API Error"
+            );
 
             return;
         }
@@ -223,44 +273,80 @@ async function loadData() {
         const dir =
             getDirection(score);
 
-        document.getElementById("riskText").innerText =
-            `⚠ ${dir.risk}`;
+        safeSetText(
+            "alertBox",
+            `⚠ ${dir.risk}`
+        );
 
-        document.getElementById("shortPredict").innerText =
-            `短線預測 | 15m: ${(btcChange / 18).toFixed(2)}% | 30m: ${(btcChange / 9).toFixed(2)}%`;
+        safeSetText(
+            "predictionText",
+            `短線預測 | 15m: ${(btcChange / 18).toFixed(2)}% | 30m: ${(btcChange / 9).toFixed(2)}%`
+        );
 
-        document.getElementById("btcPrice").innerText =
+        safeSetText(
+            "btcPrice",
             `BTC: ${btcPrice.toLocaleString(undefined,{
                 minimumFractionDigits:2,
                 maximumFractionDigits:2
-            })} USDT (${btcChange.toFixed(2)}%)`;
+            })} USDT (${btcChange.toFixed(2)}%)`
+        );
 
-        document.getElementById("btcVolume").innerText =
-            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`;
+        safeSetText(
+            "btcVolume",
+            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`
+        );
 
-        document.getElementById("macroDirection").innerHTML =
-            `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`;
+        safeSetHTML(
+            "macroText",
+            `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`
+        );
 
-        document.getElementById("macroDirection").style.color =
-            dir.color;
+        const macro =
+            document.getElementById("macroText");
 
-        document.getElementById("dxy").innerText =
-            `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${globalData.dxy.change.toFixed(2)}%)`;
+        if (macro) {
+            macro.style.color = dir.color;
+        }
 
-        document.getElementById("dow").innerText =
-            `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${globalData.dow.change.toFixed(2)}%)`;
+        safeSetText(
+            "macroReason",
+            "全球宏觀數據分析中..."
+        );
 
-        document.getElementById("us10y").innerText =
-            `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${globalData.us10y.change.toFixed(2)}%)`;
+        safeSetText(
+            "dxy",
+            `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${globalData.dxy.change.toFixed(2)}%)`
+        );
 
-        document.getElementById("vix").innerText =
-            `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${globalData.vix.change.toFixed(2)}%)`;
+        safeSetText(
+            "dow",
+            `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${globalData.dow.change.toFixed(2)}%)`
+        );
 
-        document.getElementById("gold").innerText =
-            `黃金: ${globalData.gold.value.toFixed(2)} (${globalData.gold.change.toFixed(2)}%)`;
+        safeSetText(
+            "us10y",
+            `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${globalData.us10y.change.toFixed(2)}%)`
+        );
 
-        document.getElementById("fear").innerText =
-            `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`;
+        safeSetText(
+            "vix",
+            `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${globalData.vix.change.toFixed(2)}%)`
+        );
+
+        safeSetText(
+            "gold",
+            `黃金: ${globalData.gold.value.toFixed(2)} (${globalData.gold.change.toFixed(2)}%)`
+        );
+
+        safeSetText(
+            "fear",
+            `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`
+        );
+
+        safeSetText(
+            "updateTime",
+            globalData.updateTime || ""
+        );
 
         setBlocks(score);
 
@@ -268,8 +354,10 @@ async function loadData() {
 
         console.log(e);
 
-        document.getElementById("riskText").innerText =
-            "Load Failed";
+        safeSetText(
+            "alertBox",
+            "Load Failed"
+        );
     }
 }
 
