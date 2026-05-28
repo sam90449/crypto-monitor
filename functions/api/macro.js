@@ -92,7 +92,13 @@ export async function onRequestGet() {
     try {
 
         const fearResponse = await fetch(
-            "https://api.alternative.me/fng/"
+            "https://api.alternative.me/fng/",
+            {
+                headers: {
+                    "accept": "application/json",
+                    "user-agent": "Mozilla/5.0"
+                }
+            }
         );
 
         const fearJson = await fearResponse.json();
@@ -140,7 +146,8 @@ export async function onRequestGet() {
         {
             headers: {
                 "content-type": "application/json;charset=UTF-8",
-                "access-control-allow-origin": "*"
+                "access-control-allow-origin": "*",
+                "cache-control": "no-cache"
             }
         }
 
