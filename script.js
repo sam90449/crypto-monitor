@@ -1,6 +1,8 @@
 const API_URL =
 "https://wispy-dawn-5bf8.jacky12345cheung.workers.dev/";
 
+let currentSymbol = "BTCUSDT";
+
 function safeSetText(id, text) {
 
     const el = document.getElementById(id);
@@ -10,74 +12,6 @@ function safeSetText(id, text) {
     }
 }
 
-function safeSetHTML(id, html) {
-
-    const el = document.getElementById(id);
-
-    if (el) {
-        el.innerHTML = html;
-    }
-}
-
-function getDirection(score) {
-
-    if (score >= 5) {
-
-        return {
-            title: "強勢看漲",
-            risk: "Strong Pump",
-            color: "#00ff99",
-            emoji: "🟢"
-        };
-    }
-
-    if (score >= 2) {
-
-        return {
-            title: "偏強看漲",
-            risk: "Bullish",
-            color: "#00ffee",
-            emoji: "🟢"
-        };
-    }
-
-    if (score >= -1) {
-
-        return {
-            title: "中性震盪",
-            risk: "Neutral",
-            color: "#ffee00",
-            emoji: "🟡"
-        };
-    }
-
-    if (score >= -4) {
-
-        return {
-            title: "偏弱看跌",
-            risk: "Bearish",
-            color: "#ff6688",
-            emoji: "🔴"
-        };
-    }
-
-    return {
-        title: "強勢看跌",
-        risk: "Major Dump Risk",
-        color: "#ff3355",
-        emoji: "🔴"
-    };
-}
-
-async function fetchBinance() {
-
-    const res = await fetch(
-        "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-    );
-
-    return await res.json();
-}
-
 async function fetchGlobal() {
 
     const res = await fetch(API_URL);
@@ -85,105 +19,14 @@ async function fetchGlobal() {
     return await res.json();
 }
 
-function calcScore(g, btcChange) {
-
-    let score = 0;
-
-    if (g.dxy.change > 0) score -= 1;
-    else score += 1;
-
-    if (g.vix.change > 0) score -= 1;
-    else score += 1;
-
-    if (g.gold.change > 0) score -= 1;
-    else score += 1;
-
-    if (g.us10y.change > 0) score -= 1;
-    else score += 1;
-
-    if (g.dow.change > 0) score += 1;
-    else score -= 1;
-
-    if (g.fear.value <= 25) score -= 2;
-
-    if (g.fear.value >= 75) score += 2;
-
-    if (btcChange > 0) score += 1;
-    else score -= 1;
-
-    return score;
-}
-
-async function loadData() {
+async function loadGlobalData() {
 
     try {
 
-        const [
-            btc,
-            globalData
-        ] = await Promise.all([
-            fetchBinance(),
-            fetchGlobal()
-        ]);
+        const globalData = await fetchGlobal();
 
         if (!globalData || !globalData.success) {
-
-            safeSetText(
-                "alertBox",
-                "Worker API Error"
-            );
-
             return;
-        }
-
-        const btcPrice =
-            Number(btc.lastPrice);
-
-        const btcChange =
-            Number(btc.priceChangePercent);
-
-        const btcVolume =
-            Number(btc.volume);
-
-        const score =
-            calcScore(globalData, btcChange);
-
-        const dir =
-            getDirection(score);
-
-        safeSetText(
-            "alertBox",
-            `⚠ ${dir.risk}`
-        );
-
-        safeSetText(
-            "predictionText",
-            `短線預測 | 15m: ${(btcChange / 18).toFixed(2)}% | 30m: ${(btcChange / 9).toFixed(2)}%`
-        );
-
-        safeSetText(
-            "btcPrice",
-            `BTC: ${btcPrice.toLocaleString(undefined,{
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
-            })} USDT (${btcChange.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "btcVolume",
-            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`
-        );
-
-        safeSetHTML(
-            "macroText",
-            `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`
-        );
-
-        const macro =
-            document.getElementById("macroText");
-
-        if (macro) {
-            macro.style.color = dir.color;
         }
 
         safeSetText(
@@ -224,15 +67,12 @@ async function loadData() {
     } catch (e) {
 
         console.log(e);
-
-        safeSetText(
-            "alertBox",
-            "Load Failed"
-        );
     }
 }
 
-function initCharts() {
+function createBTCChart(symbol) {
+
+    document.getElementById("btc_chart").innerHTML = "";
 
     new TradingView.widget({
 
@@ -240,7 +80,7 @@ function initCharts() {
 
         height: 760,
 
-        symbol: "BINANCE:BTCUSDT",
+        symbol: `BINANCE:${symbol}`,
 
         interval: "5",
 
@@ -270,6 +110,11 @@ function initCharts() {
 
         container_id: "btc_chart"
     });
+}
+
+function createDXYChart() {
+
+    document.getElementById("dxy_chart").innerHTML = "";
 
     new TradingView.widget({
 
@@ -307,8 +152,66 @@ function initCharts() {
     });
 }
 
-initCharts();
+function normalizeSymbol(input) {
 
-loadData();
+    let s = input
+        .trim()
+        .toUpperCase();
 
-setInterval(loadData, 30000);
+    s = s.replace("USDT", "");
+
+    return s + "USDT";
+}
+
+function loadSymbol() {
+
+    const input =
+        document.getElementById("symbolInput");
+
+    let symbol =
+        input.value.trim();
+
+    if (!symbol) {
+        symbol = "BTC";
+    }
+
+    currentSymbol =
+        normalizeSymbol(symbol);
+
+    const pure =
+        currentSymbol.replace("USDT", "");
+
+    document.getElementById(
+        "leftTitle"
+    ).innerText =
+        `${pure} 即時5m 走勢`;
+
+    createBTCChart(currentSymbol);
+}
+
+document
+.getElementById("loadBtn")
+.addEventListener(
+    "click",
+    loadSymbol
+);
+
+document
+.getElementById("symbolInput")
+.addEventListener(
+    "keydown",
+    function(e){
+
+        if(e.key === "Enter"){
+            loadSymbol();
+        }
+    }
+);
+
+createBTCChart(currentSymbol);
+
+createDXYChart();
+
+loadGlobalData();
+
+setInterval(loadGlobalData, 30000);
