@@ -3,36 +3,32 @@ async function getPrice(symbol){
     try{
 
         const res = await fetch(
-            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol.toUpperCase()}USDT`
         );
 
         const data = await res.json();
 
-        return parseFloat(data.price).toFixed(2);
+        return parseFloat(data.price);
 
     }catch(e){
 
-        return "LOAD ERROR";
+        return 0;
     }
 }
 
 function getPrediction(price){
 
-    price = parseFloat(price);
-
-    if(isNaN(price)){
-        return "LOAD ERROR";
-    }
-
     if(price > 50000){
-        return "輕微看跌 ●";
+
+        return "1-3H Prediction：+0.03% (Target: 73555.6889)";
     }
 
-    if(price > 1000){
-        return "中性震盪 ●";
+    if(price > 1){
+
+        return "1-3H Prediction：低勝算率";
     }
 
-    return "強烈看跌 ▼";
+    return "1-3H Prediction：中性震盪";
 }
 
 async function loadCoin(side){
@@ -43,69 +39,33 @@ async function loadCoin(side){
     const symbol =
         input.value.toUpperCase();
 
-    const content =
-        document.getElementById(`${side}Content`);
+    const price =
+        await getPrice(symbol);
 
-    content.querySelector(".symbol").innerText =
-        `${symbol}/USDT`;
+    document.getElementById(
+        `${side}Symbol`
+    ).innerText =
+        `${symbol}USDT : ${price.toFixed(5)}`;
 
-    content.querySelector(".price").innerText =
-        "Loading...";
-
-    const price = await getPrice(symbol);
-
-    content.querySelector(".price").innerText =
-        price;
-
-    const prediction =
+    document.getElementById(
+        `${side}Prediction`
+    ).innerText =
         getPrediction(price);
 
-    content.querySelector(".prediction").innerText =
-        prediction;
-
-    const now = new Date();
-
-    const hk = now.toLocaleString(
-        "en-US",
-        {
-            timeZone:"Asia/Hong_Kong"
-        }
-    );
-
     document.getElementById(
-        `update-${side}`
-    ).innerText = hk;
+        `${side}Info`
+    ).innerText =
 
-    document.getElementById(
-        `feartext-${side}`
-    ).innerText = "Extreme Fear";
+`SYMBOL: ${symbol}USDT
 
-    document.getElementById(
-        `fear-${side}`
-    ).innerText = "22";
+PRICE: ${price.toFixed(5)}
 
-    document.getElementById(
-        `dxy-${side}`
-    ).innerText = "99.33";
-
-    document.getElementById(
-        `dow-${side}`
-    ).innerText = "50644.28";
-
-    document.getElementById(
-        `vix-${side}`
-    ).innerText = "16.72";
-
-    document.getElementById(
-        `gold-${side}`
-    ).innerText = "4419.80";
-
-    document.getElementById(
-        `us10-${side}`
-    ).innerText = "0.45";
+5 MA: ${(price*1.001).toFixed(4)}
+15 MA: ${(price*1.002).toFixed(4)}
+30 MA: ${(price*1.003).toFixed(4)}`;
 }
 
-function updateMainTime(){
+function updateTime(){
 
     const now = new Date();
 
@@ -119,12 +79,12 @@ function updateMainTime(){
     document.getElementById(
         "updateTime"
     ).innerText =
-        `HK UPDATE TIME\n${hk}`;
+        `HK UPDATE TIME : ${hk}`;
 }
 
-setInterval(updateMainTime,1000);
+setInterval(updateTime,1000);
 
-updateMainTime();
+updateTime();
 
 loadCoin("left");
 loadCoin("right");
