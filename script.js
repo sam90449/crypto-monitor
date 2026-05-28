@@ -1,3 +1,59 @@
+async function getMacroData() {
+
+    try {
+
+        const response = await fetch("/api/macro");
+
+        const data = await response.json();
+
+        return data;
+
+    } catch (error) {
+
+        return {
+            error: error.toString()
+        };
+
+    }
+
+}
+
+function setLoading(side) {
+
+    const priceId =
+        side === "left"
+            ? "leftPrice"
+            : "rightPrice";
+
+    const predictionId =
+        side === "left"
+            ? "leftPrediction"
+            : "rightPrediction";
+
+    const boxesId =
+        side === "left"
+            ? "leftBoxes"
+            : "rightBoxes";
+
+    const infoId =
+        side === "left"
+            ? "leftInfo"
+            : "rightInfo";
+
+    document.getElementById(priceId).innerHTML =
+        "Loading...";
+
+    document.getElementById(predictionId).innerHTML =
+        "Loading...";
+
+    document.getElementById(boxesId).innerHTML =
+        "";
+
+    document.getElementById(infoId).innerHTML =
+        "Loading...";
+
+}
+
 async function loadCoin(side) {
 
     const inputId =
@@ -32,108 +88,136 @@ async function loadCoin(side) {
             .trim()
             .toUpperCase();
 
-    document.getElementById(priceId).innerHTML = "Loading...";
-    document.getElementById(predictionId).innerHTML = "Loading...";
-    document.getElementById(boxesId).innerHTML = "";
-    document.getElementById(infoId).innerHTML = "Loading...";
+    setLoading(side);
 
-    try {
+    const data = await getMacroData();
 
-        const response =
-            await fetch("/api/macro");
-
-        const data =
-            await response.json();
-
-        let coinPrice = "N/A";
-
-        if (symbol === "BTC") {
-            coinPrice = data.btc;
-        }
-        else if (symbol === "ETH") {
-            coinPrice = data.eth;
-        }
-        else {
-            coinPrice = "UNSUPPORTED";
-        }
+    if (data.error) {
 
         document.getElementById(priceId).innerHTML =
-            `
-            <div class="coin-price">
-                ${symbol}/USDT
-                <br><br>
-                ${coinPrice}
-            </div>
-            `;
+            "API ERROR";
 
         document.getElementById(predictionId).innerHTML =
-            `
-            1-3H AI PREDICTION:
-            <br><br>
-            ${data.status}
-            ${data.icon}
-            `;
+            data.error;
 
-        document.getElementById(boxesId).innerHTML =
-            `
-            <div class="predict-box">
+        return;
+
+    }
+
+    let coinPrice = "UNSUPPORTED";
+
+    if (symbol === "BTC") {
+
+        coinPrice = data.btc;
+
+    } else if (symbol === "ETH") {
+
+        coinPrice = data.eth;
+
+    }
+
+    document.getElementById(priceId).innerHTML = `
+        <div class="coin-symbol">
+            ${symbol}/USDT
+        </div>
+
+        <div class="coin-value">
+            ${coinPrice}
+        </div>
+    `;
+
+    document.getElementById(predictionId).innerHTML = `
+        <div class="prediction-title">
+            1-3H AI PREDICTION:
+        </div>
+
+        <div class="prediction-status">
+            ${data.status} ${data.icon}
+        </div>
+    `;
+
+    document.getElementById(boxesId).innerHTML = `
+        <div class="mini-box">
+            <div class="mini-title">
                 FEAR:
-                <br>
+            </div>
+
+            <div class="mini-value">
                 ${data.fear}
             </div>
+        </div>
 
-            <div class="predict-box">
+        <div class="mini-box">
+            <div class="mini-title">
                 BTC DOM:
-                <br>
+            </div>
+
+            <div class="mini-value">
                 ${data.btcDom}
             </div>
+        </div>
 
-            <div class="predict-box">
+        <div class="mini-box">
+            <div class="mini-title">
                 VOLUME:
-                <br>
+            </div>
+
+            <div class="mini-value">
                 ${data.btcVolume}
             </div>
-            `;
+        </div>
 
-        document.getElementById(infoId).innerHTML =
-            `
-            BTC CHANGE:
-            ${data.btcChange}
-            <br><br>
+        <div class="mini-box">
+            <div class="mini-title">
+                BTC CHANGE:
+            </div>
 
-            FEAR TEXT:
-            ${data.fearText}
-            <br><br>
+            <div class="mini-value">
+                ${data.btcChange}
+            </div>
+        </div>
 
-            UPDATE:
-            ${data.updateTime}
-            `;
+        <div class="mini-box">
+            <div class="mini-title">
+                FEAR TEXT:
+            </div>
 
-        document.getElementById("updateTime").innerHTML =
-            "HK UPDATE TIME: " + data.updateTime;
+            <div class="mini-value">
+                ${data.fearText}
+            </div>
+        </div>
 
-        document.getElementById("macroArea").innerHTML =
-            `
+        <div class="mini-box">
+            <div class="mini-title">
+                UPDATE:
+            </div>
+
+            <div class="mini-value">
+                ${data.updateTime}
+            </div>
+        </div>
+    `;
+
+    document.getElementById(infoId).innerHTML = `
+        <div class="global-line">
             TOTAL MARKET CAP:
             ${data.totalCap}
-            <br><br>
+        </div>
 
+        <div class="global-line">
             BTC DOMINANCE:
             ${data.btcDom}
-            <br><br>
+        </div>
 
+        <div class="global-line">
             MARKET FEAR:
             ${data.fearText}
-            `;
-    }
-    catch (error) {
+        </div>
+    `;
 
-        document.getElementById(priceId).innerHTML =
-            "LOAD FAILED";
+    document.getElementById("updateTime").innerHTML =
+        "HK UPDATE TIME: " + data.updateTime;
 
-        document.getElementById(predictionId).innerHTML =
-            error.toString();
-    }
 }
 
 window.onload = function () {
@@ -141,4 +225,5 @@ window.onload = function () {
     loadCoin("left");
 
     loadCoin("right");
+
 };
