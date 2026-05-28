@@ -1,360 +1,130 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
-
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Liquidity Monitor</title>
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
-
-<title>
-DUAL COIN 1-3H AI PREDICTOR
-</title>
-
-<link
-rel="stylesheet"
-href="style.css"
-/>
+<link rel="stylesheet" href="style.css">
 
 </head>
-
 <body>
 
-<div class="top-title">
-    DUAL COIN 1-3H AI PREDICTOR
+<div class="main-title">
+    BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
 </div>
 
-<div
-class="update-time"
-id="updateTime"
->
-HK UPDATE TIME
-</div>
+<div class="prediction-wrapper">
 
-<div class="main-wrapper">
+    <div class="prediction-box">
+        <div class="box-title">BTC 未來1-3小時預測</div>
 
-    <!-- LEFT -->
-
-    <div class="coin-panel">
-
-        <div class="panel-title">
-            LEFT COIN
+        <div class="grid-row">
+            <div class="label up">▲1%</div>
+            <div class="cells" id="btc_up_1"></div>
         </div>
 
-        <div class="input-row">
-
-            <input
-            id="leftInput"
-            value="NIGHT"
-            />
-
-            <button
-            onclick="loadCoin('left')"
-            >
-            LOAD
-            </button>
-
+        <div class="grid-row">
+            <div class="label up">▲1.5%</div>
+            <div class="cells" id="btc_up_15"></div>
         </div>
 
-        <div
-        class="symbol"
-        id="leftSymbol"
-        >
-        NIGHTUSDT : 0.00000
+        <div class="grid-row">
+            <div class="label up">▲2%</div>
+            <div class="cells" id="btc_up_2"></div>
         </div>
 
-        <div class="matrix-box">
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲1%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲1.5%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲2%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼1%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼1.5%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼2%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
+        <div class="grid-row">
+            <div class="label down">▼1%</div>
+            <div class="cells" id="btc_down_1"></div>
         </div>
 
-        <div
-        class="prediction"
-        id="leftPrediction"
-        >
-        1-3H AI PREDICTION：中性震盪
+        <div class="grid-row">
+            <div class="label down">▼1.5%</div>
+            <div class="cells" id="btc_down_15"></div>
         </div>
 
-        <div
-        class="info-box"
-        id="leftInfo"
-        >
-SYMBOL: NIGHTUSDT
-
-PRICE: 0.00000
-
-5 MA: 0.00000
-15 MA: 0.00000
-30 MA: 0.00000
-
-VOL MA20:
-0
-
-SCORE:
-0
+        <div class="grid-row">
+            <div class="label down">▼2%</div>
+            <div class="cells" id="btc_down_2"></div>
         </div>
-
     </div>
 
-    <!-- CENTER -->
+    <div class="middle-divider">||||</div>
 
-    <div class="middle-line">
-        ||||
-    </div>
+    <div class="prediction-box">
+        <div class="box-title">道瓊斯 未來1-3小時預測</div>
 
-    <!-- RIGHT -->
-
-    <div class="coin-panel">
-
-        <div class="panel-title">
-            RIGHT COIN
+        <div class="grid-row">
+            <div class="label up">▲1%</div>
+            <div class="cells" id="dow_up_1"></div>
         </div>
 
-        <div class="input-row">
-
-            <input
-            id="rightInput"
-            value="BTC"
-            />
-
-            <button
-            onclick="loadCoin('right')"
-            >
-            LOAD
-            </button>
-
+        <div class="grid-row">
+            <div class="label up">▲1.5%</div>
+            <div class="cells" id="dow_up_15"></div>
         </div>
 
-        <div
-        class="symbol"
-        id="rightSymbol"
-        >
-        BTCUSDT : 0.00000
+        <div class="grid-row">
+            <div class="label up">▲2%</div>
+            <div class="cells" id="dow_up_2"></div>
         </div>
 
-        <div class="matrix-box">
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲1%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲1.5%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label up">
-                    ▲2%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼1%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼1.5%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
-            <div class="matrix-row">
-
-                <div class="matrix-label down">
-                    ▼2%
-                </div>
-
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-                <div class="matrix-cell"></div>
-
-            </div>
-
+        <div class="grid-row">
+            <div class="label down">▼1%</div>
+            <div class="cells" id="dow_down_1"></div>
         </div>
 
-        <div
-        class="prediction"
-        id="rightPrediction"
-        >
-        1-3H AI PREDICTION：中性震盪
+        <div class="grid-row">
+            <div class="label down">▼1.5%</div>
+            <div class="cells" id="dow_down_15"></div>
         </div>
 
-        <div
-        class="info-box"
-        id="rightInfo"
-        >
-SYMBOL: BTCUSDT
-
-PRICE: 0.00000
-
-5 MA: 0.00000
-15 MA: 0.00000
-30 MA: 0.00000
-
-VOL MA20:
-0
-
-SCORE:
-0
+        <div class="grid-row">
+            <div class="label down">▼2%</div>
+            <div class="cells" id="dow_down_2"></div>
         </div>
-
     </div>
 
 </div>
 
-<!-- MACRO -->
+<div class="major-alert" id="majorAlert">
+    Loading...
+</div>
 
-<div class="macro-box">
+<div class="short-predict" id="shortPredict">
+    Loading...
+</div>
 
-    <div class="macro-title">
-        BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
-    </div>
+<div class="btc-price" id="btcPrice">
+    Loading...
+</div>
 
-    <div class="macro-score">
-        ◎ 宏觀方向：中性震盪 | SCORE: 0
-    </div>
+<div class="btc-volume" id="btcVolume">
+    Loading...
+</div>
 
-    <div class="macro-info">
-        DXY美元指數: 99.35
-    </div>
+<div class="macro-direction" id="macroDirection">
+    Loading...
+</div>
 
-    <div class="macro-info green">
-        道瓊斯指數: 50,644.28
-    </div>
+<div class="macro-reason" id="macroReason">
+    Loading...
+</div>
 
-    <div class="macro-info green">
-        美債10年期: 4.45%
-    </div>
+<div class="global-data">
 
-    <div class="macro-info red">
-        恐慌指數(VIX): 16.68
-    </div>
+    <div class="global-item dxy" id="dxyData"></div>
 
-    <div class="macro-info red">
-        黃金: 3315.10
-    </div>
+    <div class="global-item dow" id="dowData"></div>
+
+    <div class="global-item us10y" id="us10yData"></div>
+
+    <div class="global-item vix" id="vixData"></div>
+
+    <div class="global-item gold" id="goldData"></div>
+
+    <div class="global-item fear" id="fearData"></div>
 
 </div>
 
