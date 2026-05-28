@@ -1,14 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
 
 <title>Crypto Monitor</title>
 
+<meta name="theme-color" content="#000000">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta
+name="apple-mobile-web-app-status-bar-style"
+content="black-translucent">
+
+<meta
+name="apple-mobile-web-app-title"
+content="Crypto Monitor">
+
+<link rel="manifest" href="manifest.json">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="icon" type="image/png" href="icon-192.png">
+
 <link rel="stylesheet" href="style.css">
 
-<script type="text/javascript"
+<script
+type="text/javascript"
 src="https://s3.tradingview.com/tv.js">
 </script>
 
@@ -27,6 +56,7 @@ src="https://s3.tradingview.com/tv.js">
         id="symbolInput"
         placeholder="輸入幣種，例如：sol / btc / xrp"
         autocomplete="off"
+        spellcheck="false"
     >
 
     <button id="loadBtn">
@@ -39,8 +69,12 @@ src="https://s3.tradingview.com/tv.js">
 
     <div class="chart-box">
 
-        <div class="chart-title" id="leftTitle">
+        <div
+            class="chart-title"
+            id="leftTitle">
+
             BTC 即時5m 走勢
+
         </div>
 
         <div id="btc_chart"></div>
@@ -61,34 +95,62 @@ src="https://s3.tradingview.com/tv.js">
 
 <div class="global-data">
 
-    <div class="global-item dxy" id="dxy">
+    <div
+        class="global-item dxy"
+        id="dxy">
+
         Loading...
+
     </div>
 
-    <div class="global-item dow" id="dow">
+    <div
+        class="global-item dow"
+        id="dow">
+
         Loading...
+
     </div>
 
-    <div class="global-item us10y" id="us10y">
+    <div
+        class="global-item us10y"
+        id="us10y">
+
         Loading...
+
     </div>
 
-    <div class="global-item vix" id="vix">
+    <div
+        class="global-item vix"
+        id="vix">
+
         Loading...
+
     </div>
 
-    <div class="global-item gold" id="gold">
+    <div
+        class="global-item gold"
+        id="gold">
+
         Loading...
+
     </div>
 
-    <div class="global-item fear" id="fear">
+    <div
+        class="global-item fear"
+        id="fear">
+
         Loading...
+
     </div>
 
 </div>
 
-<div class="update-time" id="updateTime">
+<div
+    class="update-time"
+    id="updateTime">
+
     Loading...
+
 </div>
 
 <script src="script.js"></script>
