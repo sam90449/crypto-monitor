@@ -5,24 +5,15 @@ async function getCryptoData() {
         const response = await fetch(
             "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,the-open-network,solana,ripple,dogecoin,binancecoin,cardano,avalanche-2,chainlink&vs_currencies=usd",
             {
-                headers: {
-                    "accept": "application/json"
-                },
                 cache: "no-store"
             }
         );
-
-        if (!response.ok) {
-
-            return null;
-
-        }
 
         return await response.json();
 
     } catch (e) {
 
-        return null;
+        return {};
 
     }
 
@@ -39,67 +30,49 @@ async function getMacroData() {
             }
         );
 
-        if (!response.ok) {
-
-            return null;
-
-        }
-
         return await response.json();
 
     } catch (e) {
 
-        return null;
+        return {};
 
     }
 
 }
 
-function setLoading(side) {
-
-    const priceId =
-        side === "left"
-            ? "leftPrice"
-            : "rightPrice";
-
-    document.getElementById(priceId).innerHTML =
-        "Loading...";
-
-}
-
-function getCoinPrice(symbol, cryptoData) {
+function getCoinPrice(symbol, data) {
 
     const map = {
 
         BTC:
-            cryptoData?.bitcoin?.usd,
+            data?.bitcoin?.usd,
 
         ETH:
-            cryptoData?.ethereum?.usd,
+            data?.ethereum?.usd,
 
         TON:
-            cryptoData?.["the-open-network"]?.usd,
+            data?.["the-open-network"]?.usd,
 
         SOL:
-            cryptoData?.solana?.usd,
+            data?.solana?.usd,
 
         XRP:
-            cryptoData?.ripple?.usd,
+            data?.ripple?.usd,
 
         DOGE:
-            cryptoData?.dogecoin?.usd,
+            data?.dogecoin?.usd,
 
         BNB:
-            cryptoData?.binancecoin?.usd,
+            data?.binancecoin?.usd,
 
         ADA:
-            cryptoData?.cardano?.usd,
+            data?.cardano?.usd,
 
         AVAX:
-            cryptoData?.["avalanche-2"]?.usd,
+            data?.["avalanche-2"]?.usd,
 
         LINK:
-            cryptoData?.chainlink?.usd
+            data?.chainlink?.usd
 
     };
 
@@ -161,35 +134,14 @@ async function loadCoin(side) {
             .trim()
             .toUpperCase();
 
-    setLoading(side);
+    document.getElementById(priceId).innerHTML =
+        "Loading...";
 
-    const [
-        cryptoData,
-        macroData
-    ] = await Promise.all([
+    const cryptoData =
+        await getCryptoData();
 
-        getCryptoData(),
-        getMacroData()
-
-    ]);
-
-    if (!cryptoData) {
-
-        document.getElementById(priceId).innerHTML =
-            "CRYPTO API ERROR";
-
-        return;
-
-    }
-
-    if (!macroData) {
-
-        document.getElementById(priceId).innerHTML =
-            "MACRO API ERROR";
-
-        return;
-
-    }
+    const macroData =
+        await getMacroData();
 
     const coinPrice =
         getCoinPrice(
@@ -213,8 +165,8 @@ async function loadCoin(side) {
         </div>
 
         <div class="prediction-status">
-            ${macroData.status}
-            ${macroData.icon}
+            ${macroData.status || "中性震盪"}
+            ${macroData.icon || "🟣"}
         </div>
     `;
 
@@ -225,7 +177,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.fear}
+                ${macroData.fear || "N/A"}
             </div>
         </div>
 
@@ -235,7 +187,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.btcDom}
+                ${macroData.btcDom || "N/A"}
             </div>
         </div>
 
@@ -245,7 +197,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.btcChange}
+                ${macroData.btcChange || "N/A"}
             </div>
         </div>
 
@@ -255,7 +207,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.btcVolume}
+                ${macroData.btcVolume || "N/A"}
             </div>
         </div>
 
@@ -265,7 +217,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.totalCap}
+                ${macroData.totalCap || "N/A"}
             </div>
         </div>
 
@@ -275,7 +227,7 @@ async function loadCoin(side) {
             </div>
 
             <div class="mini-value">
-                ${macroData.updateTime}
+                ${macroData.updateTime || "N/A"}
             </div>
         </div>
     `;
@@ -283,29 +235,29 @@ async function loadCoin(side) {
     document.getElementById(infoId).innerHTML = `
         <div class="global-line">
             FEAR:
-            ${macroData.fear}
-            (${macroData.fearText})
+            ${macroData.fear || "N/A"}
+            (${macroData.fearText || "N/A"})
         </div>
 
         <div class="global-line">
             BTC DOM:
-            ${macroData.btcDom}
+            ${macroData.btcDom || "N/A"}
         </div>
 
         <div class="global-line">
             TOTAL CAP:
-            ${macroData.totalCap}
+            ${macroData.totalCap || "N/A"}
         </div>
 
         <div class="global-line">
             BTC VOL:
-            ${macroData.btcVolume}
+            ${macroData.btcVolume || "N/A"}
         </div>
     `;
 
     document.getElementById("updateTime").innerHTML =
         "HK UPDATE TIME: " +
-        macroData.updateTime;
+        (macroData.updateTime || "N/A");
 
     document.getElementById("macroArea").innerHTML = `
 
@@ -317,32 +269,32 @@ async function loadCoin(side) {
 
             <div class="global-line">
                 DXY:
-                ${macroData.dxy}
-                (${macroData.dxyChange})
+                ${macroData.dxy || "N/A"}
+                (${macroData.dxyChange || "N/A"})
             </div>
 
             <div class="global-line">
                 DOW:
-                ${macroData.dow}
-                (${macroData.dowChange})
+                ${macroData.dow || "N/A"}
+                (${macroData.dowChange || "N/A"})
             </div>
 
             <div class="global-line">
                 VIX:
-                ${macroData.vix}
-                (${macroData.vixChange})
+                ${macroData.vix || "N/A"}
+                (${macroData.vixChange || "N/A"})
             </div>
 
             <div class="global-line">
                 GOLD:
-                ${macroData.gold}
-                (${macroData.goldChange})
+                ${macroData.gold || "N/A"}
+                (${macroData.goldChange || "N/A"})
             </div>
 
             <div class="global-line">
                 US10Y:
-                ${macroData.us10y}
-                (${macroData.us10yChange})
+                ${macroData.us10y || "N/A"}
+                (${macroData.us10yChange || "N/A"})
             </div>
 
         </div>
