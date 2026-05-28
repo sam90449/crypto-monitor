@@ -2,130 +2,204 @@ export async function onRequestGet() {
 
     try {
 
-        const btcRes =
-            await fetch(
-                "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-            );
+        // BTC + ETH PRICE
+        const priceResponse = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
+        );
 
-        const ethRes =
-            await fetch(
-                "https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT"
-            );
+        const priceData = await priceResponse.json();
 
-        const fearRes =
-            await fetch(
-                "https://api.alternative.me/fng/"
-            );
+        // GLOBAL MARKET DATA
+        const globalResponse = await fetch(
+            "https://api.coingecko.com/api/v3/global"
+        );
 
+        const globalData = await globalResponse.json();
+
+        // FEAR AND GREED
+        const fearResponse = await fetch(
+            "https://api.alternative.me/fng/?limit=1"
+        );
+
+        const fearData = await fearResponse.json();
+
+        // BTC
         const btc =
-            await btcRes.json();
+            priceData?.bitcoin?.usd
+                ? Number(priceData.bitcoin.usd).toFixed(2)
+                : "N/A";
 
+        // ETH
         const eth =
-            await ethRes.json();
+            priceData?.ethereum?.usd
+                ? Number(priceData.ethereum.usd).toFixed(2)
+                : "N/A";
 
-        const fear =
-            await fearRes.json();
-
-        const btcPrice =
-            Number(btc.lastPrice);
-
-        const ethPrice =
-            Number(eth.lastPrice);
-
+        // BTC CHANGE
         const btcChange =
-            Number(btc.priceChangePercent);
+            priceData?.bitcoin?.usd_24h_change
+                ? Number(priceData.bitcoin.usd_24h_change).toFixed(2) + "%"
+                : "N/A";
 
-        const btcVolume =
-            (
-                Number(btc.quoteVolume) / 1000000000
-            ).toFixed(2) + "B";
+        // TOTAL MARKET CAP
+        let totalCap = "N/A";
 
-        const fearValue =
-            fear.data[0].value;
+        if (
+            globalData &&
+            globalData.data &&
+            globalData.data.total_market_cap &&
+            globalData.data.total_market_cap.usd
+        ) {
 
-        const fearText =
-            fear.data[0].value_classification;
+            const cap = globalData.data.total_market_cap.usd;
 
-        let status = "";
-        let icon = "";
+            if (cap >= 1000000000000) {
 
-        if (btcChange >= 2) {
+                totalCap =
+                    (cap / 1000000000000).toFixed(2) + "T";
 
-            status = "強勢看升";
-            icon = "🟢";
+            } else if (cap >= 1000000000) {
 
-        } else if (btcChange <= -2) {
+                totalCap =
+                    (cap / 1000000000).toFixed(2) + "B";
 
-            status = "偏弱震盪";
-            icon = "🔴";
+            } else {
 
-        } else {
+                totalCap =
+                    Number(cap).toFixed(0);
 
-            status = "中性震盪";
-            icon = "🟣";
+            }
+
         }
 
-        const data = {
+        // BTC DOMINANCE
+        const btcDom =
+            globalData?.data?.market_cap_percentage?.btc
+                ? Number(
+                    globalData.data.market_cap_percentage.btc
+                ).toFixed(2) + "%"
+                : "N/A";
 
-            btc:
-                btcPrice.toFixed(2),
+        // BTC VOLUME
+        let btcVolume = "N/A";
 
-            eth:
-                ethPrice.toFixed(2),
+        if (
+            globalData &&
+            globalData.data &&
+            globalData.data.total_volume &&
+            globalData.data.total_volume.usd
+        ) {
 
-            btcChange:
-                btcChange.toFixed(2) + "%",
+            const volume =
+                globalData.data.total_volume.usd;
 
-            btcVolume,
+            if (volume >= 1000000000000) {
 
-            totalCap:
-                "N/A",
+                btcVolume =
+                    (volume / 1000000000000).toFixed(2) + "T";
 
-            btcDom:
-                "N/A",
+            } else if (volume >= 1000000000) {
 
-            fear:
-                fearValue,
+                btcVolume =
+                    (volume / 1000000000).toFixed(2) + "B";
 
-            fearText,
+            } else {
 
-            status,
+                btcVolume =
+                    Number(volume).toFixed(0);
 
-            icon,
-
-            updateTime:
-                new Date().toLocaleString(
-                    "en-US",
-                    {
-                        timeZone:
-                            "Asia/Hong_Kong"
-                    }
-                )
-        };
-
-        return new Response(
-            JSON.stringify(data),
-            {
-                headers: {
-                    "content-type":
-                        "application/json"
-                }
             }
-        );
 
-    } catch (e) {
+        }
 
+        // FEAR INDEX
+        const fear =
+            fearData?.data?.[0]?.value || "N/A";
+
+        const fearText =
+            fearData?.data?.[0]?.value_classification || "N/A";
+
+        // STATUS
+        let status = "中性震盪";
+        let icon = "🟣";
+
+        const btcChangeNumber =
+            parseFloat(btcChange);
+
+        if (btcChangeNumber >= 3) {
+
+            status = "強勢上升";
+            icon = "🟢";
+
+        } else if (btcChangeNumber <= -3) {
+
+            status = "弱勢下跌";
+            icon = "🔴";
+
+        }
+
+        // UPDATE TIME
+        const updateTime =
+            new Date().toLocaleString("en-US", {
+                timeZone: "Asia/Hong_Kong"
+            });
+
+        // FINAL JSON
         return new Response(
+
             JSON.stringify({
-                error:
-                    e.toString()
+
+                btc: btc,
+                eth: eth,
+
+                btcChange: btcChange,
+
+                btcVolume: btcVolume,
+
+                totalCap: totalCap,
+
+                btcDom: btcDom,
+
+                fear: fear,
+
+                fearText: fearText,
+
+                status: status,
+
+                icon: icon,
+
+                updateTime: updateTime
+
             }),
+
             {
                 headers: {
-                    "content-type":
-                        "application/json"
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
                 }
             }
+
         );
+
+    } catch (error) {
+
+        return new Response(
+
+            JSON.stringify({
+
+                error: error.toString()
+
+            }),
+
+            {
+                status: 500,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+
+        );
+
     }
+
 }
