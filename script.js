@@ -5,7 +5,8 @@ let currentSymbol = "BTCUSDT";
 
 function safeSetText(id, text) {
 
-    const el = document.getElementById(id);
+    const el =
+        document.getElementById(id);
 
     if (el) {
         el.innerText = text;
@@ -14,7 +15,8 @@ function safeSetText(id, text) {
 
 async function fetchGlobal() {
 
-    const res = await fetch(API_URL);
+    const res =
+        await fetch(API_URL);
 
     return await res.json();
 }
@@ -23,9 +25,12 @@ async function loadGlobalData() {
 
     try {
 
-        const globalData = await fetchGlobal();
+        const globalData =
+            await fetchGlobal();
 
-        if (!globalData || !globalData.success) {
+        if (!globalData ||
+            !globalData.success) {
+
             return;
         }
 
@@ -72,7 +77,10 @@ async function loadGlobalData() {
 
 function createBTCChart(symbol) {
 
-    document.getElementById("btc_chart").innerHTML = "";
+    document
+    .getElementById(
+        "btc_chart"
+    ).innerHTML = "";
 
     new TradingView.widget({
 
@@ -114,7 +122,10 @@ function createBTCChart(symbol) {
 
 function createDXYChart() {
 
-    document.getElementById("dxy_chart").innerHTML = "";
+    document
+    .getElementById(
+        "dxy_chart"
+    ).innerHTML = "";
 
     new TradingView.widget({
 
@@ -154,7 +165,8 @@ function createDXYChart() {
 
 function normalizeSymbol(input) {
 
-    let s = input
+    let s =
+        input
         .trim()
         .toUpperCase();
 
@@ -166,7 +178,9 @@ function normalizeSymbol(input) {
 function loadSymbol() {
 
     const input =
-        document.getElementById("symbolInput");
+        document.getElementById(
+            "symbolInput"
+        );
 
     let symbol =
         input.value.trim();
@@ -179,12 +193,19 @@ function loadSymbol() {
         normalizeSymbol(symbol);
 
     const pure =
-        currentSymbol.replace("USDT", "");
+        currentSymbol
+        .replace("USDT", "");
 
-    document.getElementById(
+    document
+    .getElementById(
         "leftTitle"
     ).innerText =
         `${pure} 即時5m 走勢`;
+
+    localStorage.setItem(
+        "last_symbol",
+        pure
+    );
 
     createBTCChart(currentSymbol);
 }
@@ -208,10 +229,52 @@ document
     }
 );
 
+const last =
+    localStorage.getItem(
+        "last_symbol"
+    );
+
+if(last){
+
+    document
+    .getElementById(
+        "symbolInput"
+    ).value = last;
+
+    currentSymbol =
+        normalizeSymbol(last);
+}
+
+const pure =
+    currentSymbol
+    .replace("USDT", "");
+
+document
+.getElementById(
+    "leftTitle"
+).innerText =
+    `${pure} 即時5m 走勢`;
+
 createBTCChart(currentSymbol);
 
 createDXYChart();
 
 loadGlobalData();
 
-setInterval(loadGlobalData, 30000);
+setInterval(
+    loadGlobalData,
+    30000
+);
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            navigator.serviceWorker.register(
+                "./sw.js"
+            );
+        }
+    );
+}
