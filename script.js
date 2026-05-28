@@ -124,7 +124,7 @@ async function loadCoin(side) {
 
     document.getElementById(predictionId).innerHTML = `
         <div class="prediction-title">
-            1-3H AI PREDICTION:
+            1-3H AI PREDICTION
         </div>
 
         <div class="prediction-status">
@@ -155,16 +155,6 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                VOLUME
-            </div>
-
-            <div class="mini-value">
-                ${data.btcVolume}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
                 BTC CHANGE
             </div>
 
@@ -175,11 +165,21 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                FEAR TEXT
+                VOLUME
             </div>
 
             <div class="mini-value">
-                ${data.fearText}
+                ${data.btcVolume}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                TOTAL CAP
+            </div>
+
+            <div class="mini-value">
+                ${data.totalCap}
             </div>
         </div>
 
@@ -196,18 +196,24 @@ async function loadCoin(side) {
 
     document.getElementById(infoId).innerHTML = `
         <div class="global-line">
-            TOTAL MARKET CAP:
-            ${data.totalCap}
+            FEAR:
+            ${data.fear}
+            (${data.fearText})
         </div>
 
         <div class="global-line">
-            BTC DOMINANCE:
+            BTC DOM:
             ${data.btcDom}
         </div>
 
         <div class="global-line">
-            MARKET FEAR:
-            ${data.fearText}
+            TOTAL CAP:
+            ${data.totalCap}
+        </div>
+
+        <div class="global-line">
+            BTC VOL:
+            ${data.btcVolume}
         </div>
     `;
 
@@ -215,32 +221,68 @@ async function loadCoin(side) {
         "HK UPDATE TIME: " + data.updateTime;
 
     document.getElementById("macroArea").innerHTML = `
+
         <div class="macro-title">
             GLOBAL MACRO DATA
         </div>
 
         <div class="macro-content">
 
-            TOTAL MARKET CAP:
-            ${data.totalCap}
+            <div class="global-line">
+                DXY:
+                ${data.dxy}
+                (${data.dxyChange})
+            </div>
 
-            <br><br>
+            <div class="global-line">
+                DOW:
+                ${data.dow}
+                (${data.dowChange})
+            </div>
 
-            BTC DOMINANCE:
-            ${data.btcDom}
+            <div class="global-line">
+                VIX:
+                ${data.vix}
+                (${data.vixChange})
+            </div>
 
-            <br><br>
+            <div class="global-line">
+                GOLD:
+                ${data.gold}
+                (${data.goldChange})
+            </div>
 
-            BTC VOLUME:
-            ${data.btcVolume}
+            <div class="global-line">
+                US10Y:
+                ${data.us10y}
+                (${data.us10yChange})
+            </div>
 
-            <br><br>
+            <br>
 
-            FEAR & GREED:
-            ${data.fear}
-            (${data.fearText})
+            <div class="global-line">
+                TOTAL MARKET CAP:
+                ${data.totalCap}
+            </div>
+
+            <div class="global-line">
+                BTC DOMINANCE:
+                ${data.btcDom}
+            </div>
+
+            <div class="global-line">
+                BTC VOLUME:
+                ${data.btcVolume}
+            </div>
+
+            <div class="global-line">
+                FEAR & GREED:
+                ${data.fear}
+                (${data.fearText})
+            </div>
 
         </div>
+
     `;
 
 }
