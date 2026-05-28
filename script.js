@@ -1,363 +1,280 @@
-const BINANCE_BASE = "https://api.binance.com/api/v3";
+const BINANCE_URL = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT";
 
-const MACRO = {
-    dxy: 99.35,
-    dow: 50644.28,
-    us10y: 4.45,
-    vix: 16.68,
-    gold: 3315.10
+const FEAR_API = "https://api.alternative.me/fng/";
+
+const YAHOO_PROXY = "https://query1.finance.yahoo.com/v8/finance/chart/";
+
+const SYMBOLS = {
+    DXY: "DX-Y.NYB",
+    DOW: "^DJI",
+    VIX: "^VIX",
+    GOLD: "GC=F",
+    US10Y: "^TNX"
 };
 
-async function fetchPrice(symbol){
+function createCells(targetId, filled, colorClass){
 
-    const res = await fetch(
-        `${BINANCE_BASE}/ticker/price?symbol=${symbol}USDT`
-    );
+    const box = document.getElementById(targetId);
 
-    const data = await res.json();
+    box.innerHTML = "";
 
-    return parseFloat(data.price);
+    for(let i=0;i<4;i++){
+
+        const cell = document.createElement("div");
+
+        cell.className = "cell";
+
+        if(i < filled){
+
+            cell.classList.add(colorClass);
+        }
+
+        box.appendChild(cell);
+    }
 }
 
-async function fetchKlines(symbol, interval="15m", limit=60){
+function updatePredictionGrid(score){
 
-    const res = await fetch(
-        `${BINANCE_BASE}/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
-    );
+    createCells("btc_up_1",0,"fill-green");
+    createCells("btc_up_15",0,"fill-green");
+    createCells("btc_up_2",0,"fill-green");
 
-    return await res.json();
+    createCells("btc_down_1",0,"fill-red");
+    createCells("btc_down_15",0,"fill-red");
+    createCells("btc_down_2",0,"fill-red");
+
+    createCells("dow_up_1",0,"fill-green");
+    createCells("dow_up_15",0,"fill-green");
+    createCells("dow_up_2",0,"fill-green");
+
+    createCells("dow_down_1",0,"fill-red");
+    createCells("dow_down_15",0,"fill-red");
+    createCells("dow_down_2",0,"fill-red");
+
+    if(score >= 5){
+
+        createCells("btc_up_1",1,"fill-green");
+        createCells("btc_up_15",2,"fill-green");
+        createCells("btc_up_2",3,"fill-green");
+
+    }else if(score >= 2){
+
+        createCells("btc_up_1",1,"fill-green");
+
+    }else if(score <= -5){
+
+        createCells("btc_down_1",1,"fill-red");
+        createCells("btc_down_15",2,"fill-red");
+        createCells("btc_down_2",3,"fill-red");
+
+    }else if(score <= -2){
+
+        createCells("btc_down_1",1,"fill-red");
+    }
 }
 
-function calcMA(klines, period){
+async function fetchYahoo(symbol){
 
-    const closes = klines
-        .slice(-period)
-        .map(k => parseFloat(k[4]));
+    try{
 
-    const sum = closes.reduce((a,b)=>a+b,0);
+        const response = await fetch(
+            `${YAHOO_PROXY}${symbol}?interval=1d&range=2d`
+        );
 
-    return sum / closes.length;
-}
+        const data = await response.json();
 
-function calcVolumeMA(klines, period){
+        const result = data.chart.result[0];
 
-    const vols = klines
-        .slice(-period)
-        .map(k => parseFloat(k[5]));
+        const price = result.meta.regularMarketPrice;
 
-    const sum = vols.reduce((a,b)=>a+b,0);
+        const previous = result.meta.chartPreviousClose;
 
-    return sum / vols.length;
-}
+        const change = ((price - previous) / previous) * 100;
 
-function calcMomentum(price, ma5, ma15, ma30){
-
-    let score = 0;
-
-    if(price > ma5) score++;
-    else score--;
-
-    if(ma5 > ma15) score++;
-    else score--;
-
-    if(ma15 > ma30) score++;
-    else score--;
-
-    return score;
-}
-
-function getPrediction(score){
-
-    if(score >= 3){
         return {
-            text:"強烈看升 ▲",
-            color:"#00ff99",
-            active:[
-                "up1",
-                "up15",
-                "up2"
-            ]
+            price,
+            change
+        };
+
+    }catch(e){
+
+        return {
+            price:0,
+            change:0
+        };
+    }
+}
+
+async function fetchFear(){
+
+    try{
+
+        const response = await fetch(FEAR_API);
+
+        const data = await response.json();
+
+        return parseInt(data.data[0].value);
+
+    }catch(e){
+
+        return 50;
+    }
+}
+
+async function fetchBTC(){
+
+    const response = await fetch(BINANCE_URL);
+
+    const data = await response.json();
+
+    return {
+        price: parseFloat(data.lastPrice),
+        volume: parseFloat(data.quoteVolume),
+        change: parseFloat(data.priceChangePercent)
+    };
+}
+
+function marketFearText(v){
+
+    if(v <= 25) return "Extreme Fear";
+    if(v <= 45) return "Fear";
+    if(v <= 55) return "Neutral";
+    if(v <= 75) return "Greed";
+
+    return "Extreme Greed";
+}
+
+function buildMacro(score){
+
+    if(score >= 5){
+
+        return {
+            text:"🟢 宏觀方向：強勢看漲 | SCORE: "+score,
+            reason:"美元偏弱｜風險市場強勢"
         };
     }
 
-    if(score >= 1){
+    if(score >= 2){
+
         return {
-            text:"輕微看升 ●",
-            color:"#00ffff",
-            active:[
-                "up1"
-            ]
+            text:"🟡 宏觀方向：偏強看漲 | SCORE: "+score,
+            reason:"市場氣氛偏向風險資產"
         };
     }
 
-    if(score <= -3){
+    if(score <= -5){
+
         return {
-            text:"強烈看跌 ▼",
-            color:"#ff3355",
-            active:[
-                "down1",
-                "down15",
-                "down2"
-            ]
+            text:"🔴 宏觀方向：強勢看跌 | SCORE: "+score,
+            reason:"避險情緒極強｜BTC偏弱"
         };
     }
 
-    if(score <= -1){
+    if(score <= -2){
+
         return {
-            text:"輕微看跌 ●",
-            color:"#ffaa00",
-            active:[
-                "down1"
-            ]
+            text:"🟠 宏觀方向：偏弱看跌 | SCORE: "+score,
+            reason:"美債偏強｜BTC中線偏弱"
         };
     }
 
     return {
-        text:"中性震盪 ◎",
-        color:"yellow",
-        active:[]
+        text:"🟡 宏觀方向：中性震盪 | SCORE: "+score,
+        reason:"市場方向未明"
     };
 }
 
-function clearMatrix(panel){
-
-    const cells = panel.querySelectorAll(".matrix-cell");
-
-    cells.forEach(c=>{
-        c.classList.remove(
-            "active-green",
-            "active-red"
-        );
-    });
-}
-
-function activateMatrix(panel, active){
-
-    clearMatrix(panel);
-
-    const map = {
-        up1:0,
-        up15:4,
-        up2:8,
-        down1:12,
-        down15:16,
-        down2:20
-    };
-
-    active.forEach(a=>{
-
-        const index = map[a];
-
-        if(index !== undefined){
-
-            const cell =
-                panel.querySelectorAll(".matrix-cell")[index];
-
-            if(a.includes("down")){
-                cell.classList.add("active-red");
-            }else{
-                cell.classList.add("active-green");
-            }
-        }
-    });
-}
-
-function getMacroScore(){
-
-    let score = 0;
-
-    if(MACRO.dxy > 99) score--;
-    else score++;
-
-    if(MACRO.vix > 15) score--;
-    else score++;
-
-    if(MACRO.dow > 50000) score++;
-    else score--;
-
-    if(MACRO.gold > 3200) score--;
-    else score++;
-
-    return score;
-}
-
-function renderMacro(){
-
-    const score = getMacroScore();
-
-    let text = "中性震盪";
-    let color = "yellow";
-
-    if(score >= 2){
-        text = "偏強看升";
-        color = "#00ff99";
-    }
-
-    if(score <= -2){
-        text = "偏弱看跌";
-        color = "#ff3355";
-    }
-
-    document.querySelector(".macro-score").innerHTML =
-        `◎ 宏觀方向：<span style="color:${color}">${text}</span> | SCORE: ${score}`;
-
-    document.querySelector(".macro-box").innerHTML = `
-        <div class="macro-title">
-            BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
-        </div>
-
-        <div class="macro-score">
-            ◎ 宏觀方向：
-            <span style="color:${color}">
-                ${text}
-            </span>
-            | SCORE: ${score}
-        </div>
-
-        <div class="macro-info">
-            DXY美元指數: ${MACRO.dxy}
-        </div>
-
-        <div class="macro-info green">
-            道瓊斯指數: ${MACRO.dow}
-        </div>
-
-        <div class="macro-info green">
-            美債10年期: ${MACRO.us10y}%
-        </div>
-
-        <div class="macro-info red">
-            恐慌指數(VIX): ${MACRO.vix}
-        </div>
-
-        <div class="macro-info red">
-            黃金: ${MACRO.gold}
-        </div>
-    `;
-}
-
-async function loadCoin(side){
+async function loadData(){
 
     try{
 
-        const input =
-            document.getElementById(`${side}Input`);
+        const btc = await fetchBTC();
 
-        const symbol =
-            input.value
-                .toUpperCase()
-                .replace("USDT","");
+        const dxy = await fetchYahoo(SYMBOLS.DXY);
 
-        const price =
-            await fetchPrice(symbol);
+        const dow = await fetchYahoo(SYMBOLS.DOW);
 
-        const klines =
-            await fetchKlines(symbol);
+        const vix = await fetchYahoo(SYMBOLS.VIX);
 
-        const ma5 =
-            calcMA(klines,5);
+        const gold = await fetchYahoo(SYMBOLS.GOLD);
 
-        const ma15 =
-            calcMA(klines,15);
+        const us10y = await fetchYahoo(SYMBOLS.US10Y);
 
-        const ma30 =
-            calcMA(klines,30);
+        const fear = await fetchFear();
 
-        const volumeMA =
-            calcVolumeMA(klines,20);
+        let score = 0;
 
-        const score =
-            calcMomentum(
-                price,
-                ma5,
-                ma15,
-                ma30
-            );
+        if(dxy.change < 0) score += 1;
+        else score -= 1;
 
-        const pred =
-            getPrediction(score);
+        if(dow.change > 0) score += 1;
+        else score -= 1;
 
-        document.getElementById(
-            `${side}Symbol`
-        ).innerText =
-            `${symbol}USDT : ${price.toFixed(5)}`;
+        if(vix.change < 0) score += 1;
+        else score -= 1;
 
-        const predDiv =
-            document.getElementById(
-                `${side}Prediction`
-            );
+        if(gold.change < 0) score += 1;
+        else score -= 1;
 
-        predDiv.innerText =
-            `1-3H AI PREDICTION：${pred.text}`;
+        if(us10y.change < 0) score += 1;
+        else score -= 1;
 
-        predDiv.style.color =
-            pred.color;
+        if(fear > 55) score += 1;
+        else if(fear < 45) score -= 1;
 
-        document.getElementById(
-            `${side}Info`
-        ).innerText =
+        const macro = buildMacro(score);
 
-`SYMBOL: ${symbol}USDT
+        updatePredictionGrid(score);
 
-PRICE: ${price.toFixed(5)}
+        document.getElementById("majorAlert").innerHTML =
+            score <= -5
+            ? "⚠ Major Dump Risk"
+            : score >= 5
+            ? "🚀 Strong Bullish Momentum"
+            : "No Major Alert";
 
-5 MA: ${ma5.toFixed(5)}
-15 MA: ${ma15.toFixed(5)}
-30 MA: ${ma30.toFixed(5)}
+        document.getElementById("shortPredict").innerHTML =
+            `短線預測 | 15m: ${(btc.change/18).toFixed(2)}% | 30m: ${(btc.change/9).toFixed(2)}%`;
 
-VOL MA20:
-${Math.round(volumeMA).toLocaleString()}
+        document.getElementById("btcPrice").innerHTML =
+            `BTC: ${btc.price.toLocaleString()} USDT (${btc.change.toFixed(2)}%)`;
 
-SCORE:
-${score}`;
+        document.getElementById("btcVolume").innerHTML =
+            `BTC成交量: ${Math.round(btc.volume).toLocaleString()}`;
 
-        const panel =
-            predDiv.parentElement;
+        document.getElementById("macroDirection").innerHTML =
+            macro.text;
 
-        activateMatrix(
-            panel,
-            pred.active
-        );
+        document.getElementById("macroReason").innerHTML =
+            macro.reason;
+
+        document.getElementById("dxyData").innerHTML =
+            `DXY美元指數: ${dxy.price.toFixed(2)} (${dxy.change.toFixed(2)}%)`;
+
+        document.getElementById("dowData").innerHTML =
+            `道瓊斯指數: ${dow.price.toLocaleString()} (${dow.change.toFixed(2)}%)`;
+
+        document.getElementById("us10yData").innerHTML =
+            `美債10年期: ${us10y.price.toFixed(2)}% (${us10y.change.toFixed(2)}%)`;
+
+        document.getElementById("vixData").innerHTML =
+            `恐慌指數(VIX): ${vix.price.toFixed(2)} (${vix.change.toFixed(2)}%)`;
+
+        document.getElementById("goldData").innerHTML =
+            `黃金: ${gold.price.toFixed(2)} (${gold.change.toFixed(2)}%)`;
+
+        document.getElementById("fearData").innerHTML =
+            `MARKET FEAR: ${marketFearText(fear)} (${fear})`;
 
     }catch(e){
 
-        document.getElementById(
-            `${side}Prediction`
-        ).innerText =
+        console.log(e);
+
+        document.getElementById("majorAlert").innerHTML =
             "LOAD ERROR";
     }
 }
 
-function updateTime(){
+loadData();
 
-    const now = new Date();
-
-    const hk = now.toLocaleString(
-        "en-US",
-        {
-            timeZone:"Asia/Hong_Kong"
-        }
-    );
-
-    document.getElementById(
-        "updateTime"
-    ).innerText =
-        `HK UPDATE TIME : ${hk}`;
-}
-
-async function autoRefresh(){
-
-    await loadCoin("left");
-
-    await loadCoin("right");
-
-    renderMacro();
-}
-
-setInterval(updateTime,1000);
-
-setInterval(autoRefresh,15000);
-
-updateTime();
-
-autoRefresh();
+setInterval(loadData,30000);
