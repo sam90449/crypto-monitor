@@ -1,29 +1,30 @@
 body{
     margin:0;
+    padding:0;
     background:#000;
     color:white;
     font-family:Arial;
-    overflow-x:hidden;
+    overflow-x:auto;
 }
 
-.main-title{
+.top-title{
     text-align:center;
-    font-size:68px;
+    font-size:72px;
     font-weight:bold;
-    margin-top:35px;
+    margin-top:30px;
+    margin-bottom:15px;
     color:white;
 }
 
 .update-time{
     text-align:center;
     color:yellow;
-    font-size:22px;
-    margin-top:12px;
-    margin-bottom:25px;
+    font-size:24px;
+    margin-bottom:35px;
 }
 
 .main-wrapper{
-    width:1500px;
+    width:1650px;
     margin:auto;
     display:flex;
     justify-content:space-between;
@@ -31,55 +32,57 @@ body{
 }
 
 .coin-panel{
-    width:620px;
+    width:700px;
 }
 
 .panel-title{
     text-align:center;
-    font-size:42px;
+    font-size:52px;
     font-weight:bold;
-    margin-bottom:18px;
+    margin-bottom:20px;
 }
 
 .input-row{
     display:flex;
     justify-content:center;
-    gap:8px;
+    gap:12px;
     margin-bottom:35px;
 }
 
 .input-row input{
-    width:260px;
-    height:42px;
+    width:320px;
+    height:52px;
     background:black;
-    color:white;
-    border:2px solid #555;
-    font-size:32px;
-    padding-left:10px;
+    color:#00ffff;
+    border:2px solid #666;
+    font-size:34px;
+    padding-left:14px;
 }
 
 .input-row button{
-    width:90px;
-    font-size:28px;
-    background:black;
+    width:120px;
+    font-size:30px;
+    background:#111;
     color:white;
-    border:2px solid #555;
+    border:2px solid #666;
     cursor:pointer;
 }
 
 .symbol{
     text-align:center;
-    font-size:64px;
+    font-size:68px;
     font-weight:bold;
-    margin-bottom:30px;
+    margin-bottom:35px;
+    color:#00ffff;
 }
 
 .matrix-box{
-    width:380px;
+    width:450px;
     margin:auto;
-    border:2px solid #777;
-    padding:18px;
-    margin-bottom:30px;
+    border:2px solid #666;
+    padding:20px;
+    background:#050505;
+    margin-bottom:35px;
 }
 
 .matrix-row{
@@ -89,8 +92,8 @@ body{
 }
 
 .matrix-label{
-    width:90px;
-    font-size:32px;
+    width:110px;
+    font-size:34px;
     font-weight:bold;
 }
 
@@ -103,66 +106,71 @@ body{
 }
 
 .matrix-cell{
-    width:38px;
-    height:38px;
-    border:2px solid #666;
-    margin-right:10px;
+    width:42px;
+    height:42px;
+    border:2px solid #555;
+    margin-right:12px;
     background:#111;
 }
 
 .active-green{
     background:#00ff99;
+    box-shadow:0 0 15px #00ff99;
+}
+
+.active-red{
+    background:#ff3355;
+    box-shadow:0 0 15px #ff3355;
 }
 
 .prediction{
     text-align:center;
-    font-size:32px;
+    font-size:36px;
     font-weight:bold;
-    margin-bottom:30px;
+    margin-bottom:35px;
+    color:yellow;
 }
 
-.mini-info{
-    width:360px;
+.info-box{
+    width:430px;
     margin:auto;
-    border:2px solid #777;
-    background:black;
-    color:white;
-    padding:12px;
-    font-size:22px;
-    line-height:1.6;
+    border:2px solid #666;
+    background:#050505;
+    padding:18px;
+    font-size:24px;
+    line-height:1.7;
     white-space:pre-line;
 }
 
-.middle-separator{
-    font-size:70px;
+.middle-line{
+    font-size:90px;
+    margin-top:320px;
     color:white;
-    margin-top:280px;
 }
 
 .macro-box{
-    width:900px;
-    margin:60px auto;
+    width:1200px;
+    margin:70px auto;
     text-align:center;
 }
 
 .macro-title{
-    font-size:58px;
+    font-size:62px;
     font-weight:bold;
     color:#00ffff;
     margin-bottom:30px;
 }
 
 .macro-score{
-    font-size:52px;
+    font-size:54px;
     font-weight:bold;
     color:yellow;
-    margin-bottom:28px;
+    margin-bottom:35px;
 }
 
 .macro-info{
-    font-size:38px;
-    margin-bottom:16px;
-    color:white;
+    font-size:40px;
+    margin-bottom:18px;
 }
 
 .green{
@@ -171,4 +179,66 @@ body{
 
 .red{
     color:#ff3355;
+}
+
+@media screen and (max-width:900px){
+
+    .top-title{
+        font-size:38px;
+    }
+
+    .main-wrapper{
+        width:100%;
+        flex-direction:column;
+        align-items:center;
+    }
+
+    .coin-panel{
+        width:100%;
+        margin-bottom:50px;
+    }
+
+    .middle-line{
+        display:none;
+    }
+
+    .symbol{
+        font-size:42px;
+    }
+
+    .matrix-box{
+        width:90%;
+    }
+
+    .info-box{
+        width:88%;
+        font-size:18px;
+    }
+
+    .macro-box{
+        width:95%;
+    }
+
+    .macro-title{
+        font-size:30px;
+    }
+
+    .macro-score{
+        font-size:28px;
+    }
+
+    .macro-info{
+        font-size:22px;
+    }
+
+    .input-row input{
+        width:220px;
+        font-size:24px;
+    }
+
+    .input-row button{
+        width:90px;
+        font-size:22px;
+    }
+
 }
