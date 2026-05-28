@@ -1,346 +1,677 @@
-```javascript
-const API_URL = "https://wispy-dawn-5bf8.jacky12345cheung.workers.dev/";
+const BINANCE_BASE = "https://api.binance.com/api/v3";
 
-const btcPriceHistory = [];
-const btcVolumeHistory = [];
+const MACRO_API = {
+    fear: "https://api.alternative.me/fng/?limit=1"
+};
 
-function keepHistory(arr, value, max = 120) {
-    arr.push(value);
+const DEFAULT_MACRO = {
+    dxy: 99.35,
+    dow: 50644.28,
+    us10y: 4.45,
+    vix: 16.68,
+    gold: 3315.10
+};
 
-    if (arr.length > max) {
-        arr.shift();
+let MACRO = { ...DEFAULT_MACRO };
+
+async function safeFetch(url){
+    try{
+        const res = await fetch(url);
+
+        if(!res.ok){
+            throw new Error("FETCH ERROR");
+        }
+
+        return await res.json();
+
+    }catch(err){
+        console.error(err);
+        return null;
     }
 }
 
-function avg(arr) {
-    if (!arr.length) return 0;
-    return arr.reduce((a, b) => a + b, 0) / arr.length;
+async function fetchPrice(symbol){
+
+    try{
+
+        const data = await safeFetch(
+            `${BINANCE_BASE}/ticker/price?symbol=${symbol.toUpperCase()}USDT`
+        );
+
+        if(!data || !data.price){
+            return 0;
+        }
+
+        return parseFloat(data.price);
+
+    }catch(e){
+
+        console.error(e);
+        return 0;
+    }
 }
 
-function formatChange(v) {
-    return v > 0 ? `+${v.toFixed(2)}%` : `${v.toFixed(2)}%`;
+async function fetch24h(symbol){
+
+    try{
+
+        const data = await safeFetch(
+            `${BINANCE_BASE}/ticker/24hr?symbol=${symbol.toUpperCase()}USDT`
+        );
+
+        if(!data){
+            return null;
+        }
+
+        return data;
+
+    }catch(e){
+
+        console.error(e);
+        return null;
+    }
 }
 
-function createBlocks(active, color) {
+async function fetchKlines(symbol, interval="15m", limit=120){
 
-    let html = "";
+    try{
 
-    for (let i = 0; i < 4; i++) {
+        const data = await safeFetch(
+            `${BINANCE_BASE}/klines?symbol=${symbol.toUpperCase()}USDT&interval=${interval}&limit=${limit}`
+        );
 
-        html += `
-        <div class="block"
-             style="
-                width:22px;
-                height:22px;
-                margin-right:6px;
-                display:inline-block;
-                border:1px solid #555;
-                background:${i < active ? color : '#222'};
-             ">
-        </div>`;
+        if(!data || !Array.isArray(data)){
+            return [];
+        }
+
+        return data;
+
+    }catch(e){
+
+        console.error(e);
+        return [];
     }
-
-    return html;
 }
 
-function drawPredictionBlocks(scoreUp, scoreDown) {
+function calcMA(klines, period){
 
-    document.getElementById("btc_up_1").innerHTML =
-        createBlocks(scoreUp.one, "#00ff88");
+    try{
 
-    document.getElementById("btc_up_15").innerHTML =
-        createBlocks(scoreUp.one5, "#00ff88");
+        const closes = klines
+            .slice(-period)
+            .map(k => parseFloat(k[4]));
 
-    document.getElementById("btc_up_2").innerHTML =
-        createBlocks(scoreUp.two, "#00ff88");
+        if(closes.length === 0){
+            return 0;
+        }
 
-    document.getElementById("btc_down_1").innerHTML =
-        createBlocks(scoreDown.one, "#ff4444");
+        const sum = closes.reduce((a,b)=>a+b,0);
 
-    document.getElementById("btc_down_15").innerHTML =
-        createBlocks(scoreDown.one5, "#ff4444");
+        return sum / closes.length;
 
-    document.getElementById("btc_down_2").innerHTML =
-        createBlocks(scoreDown.two, "#ff4444");
+    }catch(e){
 
-    document.getElementById("eth_up_1").innerHTML =
-        createBlocks(scoreUp.one, "#00ff88");
-
-    document.getElementById("eth_up_15").innerHTML =
-        createBlocks(scoreUp.one5, "#00ff88");
-
-    document.getElementById("eth_up_2").innerHTML =
-        createBlocks(scoreUp.two, "#00ff88");
-
-    document.getElementById("eth_down_1").innerHTML =
-        createBlocks(scoreDown.one, "#ff4444");
-
-    document.getElementById("eth_down_15").innerHTML =
-        createBlocks(scoreDown.one5, "#ff4444");
-
-    document.getElementById("eth_down_2").innerHTML =
-        createBlocks(scoreDown.two, "#ff4444");
+        console.error(e);
+        return 0;
+    }
 }
 
-function getMode(score) {
+function calcVolumeMA(klines, period){
 
-    if (score <= -8) {
-        return {
-            text: "🚨 Major Dump Risk",
-            macro: "強勢看跌",
-            color: "#00ffee"
-        };
+    try{
+
+        const volumes = klines
+            .slice(-period)
+            .map(k => parseFloat(k[5]));
+
+        if(volumes.length === 0){
+            return 0;
+        }
+
+        const sum = volumes.reduce((a,b)=>a+b,0);
+
+        return sum / volumes.length;
+
+    }catch(e){
+
+        console.error(e);
+        return 0;
     }
-
-    if (score <= -5) {
-        return {
-            text: "⚠ Bearish",
-            macro: "偏弱看跌",
-            color: "#ff6699"
-        };
-    }
-
-    if (score <= -2) {
-        return {
-            text: "⚠ Weak Bearish",
-            macro: "中線偏弱",
-            color: "#ffaa00"
-        };
-    }
-
-    if (score >= 8) {
-        return {
-            text: "🚀 Strong Bullish",
-            macro: "強勢看漲",
-            color: "#00ff88"
-        };
-    }
-
-    if (score >= 5) {
-        return {
-            text: "🟢 Bullish",
-            macro: "偏強看漲",
-            color: "#00ff88"
-        };
-    }
-
-    return {
-        text: "No Major Alert",
-        macro: "中性震盪",
-        color: "#ffee00"
-    };
 }
 
-async function fetchKlines() {
+function getLatestVolume(klines){
 
-    const url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=60";
+    try{
 
-    const r = await fetch(url);
+        if(klines.length === 0){
+            return 0;
+        }
 
-    const data = await r.json();
+        return parseFloat(
+            klines[klines.length - 1][5]
+        );
 
-    return data.map(k => ({
-        open: parseFloat(k[1]),
-        high: parseFloat(k[2]),
-        low: parseFloat(k[3]),
-        close: parseFloat(k[4]),
-        volume: parseFloat(k[5])
-    }));
+    }catch(e){
+
+        console.error(e);
+        return 0;
+    }
 }
 
-function calcMacroScore(globalData, btcChange, ma20, lastClose) {
+function calcRSI(klines, period = 14){
+
+    try{
+
+        const closes = klines.map(
+            k => parseFloat(k[4])
+        );
+
+        if(closes.length < period + 1){
+            return 50;
+        }
+
+        let gains = 0;
+        let losses = 0;
+
+        for(let i = closes.length - period; i < closes.length; i++){
+
+            const diff = closes[i] - closes[i - 1];
+
+            if(diff >= 0){
+                gains += diff;
+            }else{
+                losses += Math.abs(diff);
+            }
+        }
+
+        if(losses === 0){
+            return 100;
+        }
+
+        const rs = gains / losses;
+
+        return 100 - (100 / (1 + rs));
+
+    }catch(e){
+
+        console.error(e);
+        return 50;
+    }
+}
+
+function calcMomentum(price, ma5, ma15, ma30){
 
     let score = 0;
 
-    if (globalData.dxy.change > 0.15) score -= 2;
-    else if (globalData.dxy.change > 0.05) score -= 1;
+    if(price > ma5){
+        score += 1;
+    }else{
+        score -= 1;
+    }
 
-    if (globalData.vix.change > 2) score -= 2;
-    else if (globalData.vix.change > 1) score -= 1;
+    if(ma5 > ma15){
+        score += 1;
+    }else{
+        score -= 1;
+    }
 
-    if (globalData.gold.change < -1) score -= 1;
-
-    if (globalData.us10y.change > 0.3) score -= 2;
-    else if (globalData.us10y.change > 0.1) score -= 1;
-
-    if (globalData.dow.change > 0.5) score += 2;
-    else if (globalData.dow.change > 0.2) score += 1;
-
-    if (globalData.fear.value < 25) score -= 2;
-    else if (globalData.fear.value < 40) score -= 1;
-
-    if (btcChange <= -3) score -= 3;
-    else if (btcChange <= -2) score -= 2;
-    else if (btcChange <= -1) score -= 1;
-
-    if (lastClose < ma20) score -= 1;
-    else score += 1;
+    if(ma15 > ma30){
+        score += 1;
+    }else{
+        score -= 1;
+    }
 
     return score;
 }
 
-function shortTermPrediction(klines) {
+function calcVolumeScore(currentVol, volMA){
 
-    const closes = klines.map(k => k.close);
-
-    const volumes = klines.map(k => k.volume);
-
-    const lastClose = closes[closes.length - 1];
-
-    const ma20 = avg(closes.slice(-20));
-
-    const avgVolume = avg(volumes.slice(-20));
-
-    const latestVolume = volumes[volumes.length - 1];
-
-    let greenCount = 0;
-    let redCount = 0;
-
-    for (let i = closes.length - 6; i < closes.length; i++) {
-
-        if (i <= 0) continue;
-
-        if (closes[i] > closes[i - 1]) {
-            greenCount++;
-        }
-
-        if (closes[i] < closes[i - 1]) {
-            redCount++;
-        }
+    if(currentVol > volMA * 2){
+        return 2;
     }
 
-    let scoreUp = 0;
-    let scoreDown = 0;
+    if(currentVol > volMA * 1.3){
+        return 1;
+    }
 
-    if (greenCount >= 3) scoreUp += 2;
+    if(currentVol < volMA * 0.7){
+        return -1;
+    }
 
-    if (redCount >= 3) scoreDown += 2;
+    return 0;
+}
 
-    if (lastClose > ma20) scoreUp += 1;
+function calcRSIScore(rsi){
 
-    if (lastClose < ma20) scoreDown += 1;
+    if(rsi >= 75){
+        return -2;
+    }
 
-    if (latestVolume > avgVolume * 1.5) {
+    if(rsi >= 65){
+        return -1;
+    }
 
-        if (greenCount > redCount) {
-            scoreUp += 1;
-        }
+    if(rsi <= 25){
+        return 2;
+    }
 
-        if (redCount > greenCount) {
-            scoreDown += 1;
-        }
+    if(rsi <= 35){
+        return 1;
+    }
+
+    return 0;
+}
+
+function getMacroScore(){
+
+    let score = 0;
+
+    if(MACRO.dxy > 104){
+        score -= 2;
+    }else if(MACRO.dxy > 100){
+        score -= 1;
+    }else{
+        score += 1;
+    }
+
+    if(MACRO.vix > 25){
+        score -= 2;
+    }else if(MACRO.vix > 18){
+        score -= 1;
+    }else{
+        score += 1;
+    }
+
+    if(MACRO.gold > 3400){
+        score -= 1;
+    }
+
+    if(MACRO.dow > 50000){
+        score += 1;
+    }else{
+        score -= 1;
+    }
+
+    return score;
+}
+
+function getPrediction(score){
+
+    if(score >= 6){
+
+        return {
+            text: "強烈看升 ▲",
+            color: "#00ff99",
+            active: [
+                "up1",
+                "up15",
+                "up2"
+            ]
+        };
+    }
+
+    if(score >= 3){
+
+        return {
+            text: "輕微看升 ●",
+            color: "#00ffff",
+            active: [
+                "up1",
+                "up15"
+            ]
+        };
+    }
+
+    if(score <= -6){
+
+        return {
+            text: "強烈看跌 ▼",
+            color: "#ff3355",
+            active: [
+                "down1",
+                "down15",
+                "down2"
+            ]
+        };
+    }
+
+    if(score <= -3){
+
+        return {
+            text: "輕微看跌 ●",
+            color: "#ffaa00",
+            active: [
+                "down1",
+                "down15"
+            ]
+        };
     }
 
     return {
-        scoreUp,
-        scoreDown,
-        ma20,
-        lastClose
+        text: "中性震盪 ◎",
+        color: "yellow",
+        active: []
     };
 }
 
-function convertBlockLevel(score) {
+function clearMatrix(panel){
 
-    return {
-        one: Math.min(4, Math.max(0, score)),
-        one5: Math.min(4, Math.max(0, score - 1)),
-        two: Math.min(4, Math.max(0, score - 2))
-    };
+    const cells = panel.querySelectorAll(".matrix-cell");
+
+    cells.forEach(cell => {
+
+        cell.classList.remove(
+            "active-green",
+            "active-red"
+        );
+    });
 }
 
-async function loadData() {
+function activateMatrix(panel, active){
 
-    try {
+    clearMatrix(panel);
 
-        const workerResponse = await fetch(API_URL);
+    const map = {
+        up1:0,
+        up15:4,
+        up2:8,
+        down1:12,
+        down15:16,
+        down2:20
+    };
 
-        const globalData = await workerResponse.json();
+    active.forEach(a => {
 
-        const btcResponse = await fetch(
-            "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
-        );
+        const index = map[a];
 
-        const btcData = await btcResponse.json();
+        if(index === undefined){
+            return;
+        }
 
-        const btcPrice = parseFloat(btcData.lastPrice);
+        const cell = panel.querySelectorAll(".matrix-cell")[index];
 
-        const btcChange = parseFloat(btcData.priceChangePercent);
+        if(!cell){
+            return;
+        }
 
-        const btcVolume = parseFloat(btcData.quoteVolume);
+        if(a.includes("down")){
+            cell.classList.add("active-red");
+        }else{
+            cell.classList.add("active-green");
+        }
+    });
+}
 
-        keepHistory(btcPriceHistory, btcPrice);
+async function fetchFearGreed(){
 
-        keepHistory(btcVolumeHistory, btcVolume);
+    try{
 
-        const klines = await fetchKlines();
+        const data = await safeFetch(MACRO_API.fear);
 
-        const shortTerm = shortTermPrediction(klines);
+        if(
+            data &&
+            data.data &&
+            data.data.length > 0
+        ){
 
-        const score = calcMacroScore(
-            globalData,
-            btcChange,
-            shortTerm.ma20,
-            shortTerm.lastClose
-        );
+            return {
+                value: data.data[0].value,
+                text: data.data[0].value_classification
+            };
+        }
 
-        const mode = getMode(score);
+        return {
+            value: "N/A",
+            text: "UNKNOWN"
+        };
 
-        const upBlocks = convertBlockLevel(shortTerm.scoreUp);
+    }catch(e){
 
-        const downBlocks = convertBlockLevel(shortTerm.scoreDown);
+        console.error(e);
 
-        drawPredictionBlocks(upBlocks, downBlocks);
+        return {
+            value: "N/A",
+            text: "UNKNOWN"
+        };
+    }
+}
 
-        document.getElementById("alertBox").innerText =
-            mode.text;
+function updateHKTime(){
 
-        document.getElementById("alertBox").style.color =
-            mode.color;
+    const now = new Date();
 
-        document.getElementById("shortPredict").innerText =
-            `短線預測 | 15m: ${(btcChange / 20).toFixed(2)}% | 30m: ${(btcChange / 10).toFixed(2)}%`;
+    const hk = now.toLocaleString(
+        "en-GB",
+        {
+            timeZone:"Asia/Hong_Kong",
+            hour12:false
+        }
+    );
 
-        document.getElementById("btcPrice").innerText =
-            `BTC: ${btcPrice.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })} USDT (${btcChange.toFixed(2)}%)`;
+    const el = document.getElementById("updateTime");
 
-        document.getElementById("btcVolume").innerText =
-            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`;
+    if(el){
+        el.innerText = `HK UPDATE TIME : ${hk}`;
+    }
+}
 
-        document.getElementById("macroText").innerText =
-            `● 宏觀方向：${mode.macro} | SCORE: ${score}`;
+function formatNumber(n){
 
-        document.getElementById("macroText").style.color =
-            mode.color;
-
-        document.getElementById("macroSub").innerText =
-            "全球宏觀數據分析中...";
-
-        document.getElementById("dxy").innerText =
-            `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${formatChange(globalData.dxy.change)})`;
-
-        document.getElementById("dow").innerText =
-            `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${formatChange(globalData.dow.change)})`;
-
-        document.getElementById("us10y").innerText =
-            `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${formatChange(globalData.us10y.change)})`;
-
-        document.getElementById("vix").innerText =
-            `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${formatChange(globalData.vix.change)})`;
-
-        document.getElementById("gold").innerText =
-            `黃金: ${globalData.gold.value.toFixed(2)} (${formatChange(globalData.gold.change)})`;
-
-        document.getElementById("fear").innerText =
-            `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`;
-
+    if(!isFinite(n)){
+        return "0";
     }
 
-    catch (e) {
+    return Number(n).toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits:4
+        }
+    );
+}
 
-        console.log(e);
+async function analyzeCoin(side){
 
-        document.getElementById("alertBox").inne
-```
+    try{
+
+        const input = document.getElementById(`${side}Input`);
+
+        if(!input){
+            return;
+        }
+
+        const symbol = input.value
+            .replace("USDT","")
+            .toUpperCase()
+            .trim();
+
+        const panel = document.getElementById(`${side}Panel`);
+
+        const priceEl = document.getElementById(`${side}Price`);
+        const symbolEl = document.getElementById(`${side}Symbol`);
+        const predictionEl = document.getElementById(`${side}Prediction`);
+        const infoEl = document.getElementById(`${side}Info`);
+
+        symbolEl.innerText = `${symbol}USDT`;
+        priceEl.innerText = "LOADING...";
+
+        const [
+            price,
+            klines5m,
+            klines15m,
+            klines30m,
+            stat24h,
+            fearData
+        ] = await Promise.all([
+            fetchPrice(symbol),
+            fetchKlines(symbol, "5m", 120),
+            fetchKlines(symbol, "15m", 120),
+            fetchKlines(symbol, "30m", 120),
+            fetch24h(symbol),
+            fetchFearGreed()
+        ]);
+
+        if(price <= 0){
+
+            priceEl.innerText = "LOAD ERROR";
+
+            predictionEl.innerText = "API ERROR";
+
+            return;
+        }
+
+        priceEl.innerText = formatNumber(price);
+
+        const ma5 = calcMA(klines5m, 5);
+        const ma15 = calcMA(klines15m, 15);
+        const ma30 = calcMA(klines30m, 30);
+
+        const volumeMA = calcVolumeMA(klines15m, 20);
+
+        const currentVolume = getLatestVolume(klines15m);
+
+        const rsi = calcRSI(klines15m);
+
+        const momentumScore = calcMomentum(
+            price,
+            ma5,
+            ma15,
+            ma30
+        );
+
+        const volumeScore = calcVolumeScore(
+            currentVolume,
+            volumeMA
+        );
+
+        const rsiScore = calcRSIScore(rsi);
+
+        const macroScore = getMacroScore();
+
+        const totalScore =
+            momentumScore +
+            volumeScore +
+            rsiScore +
+            macroScore;
+
+        const prediction = getPrediction(totalScore);
+
+        predictionEl.innerText = prediction.text;
+        predictionEl.style.color = prediction.color;
+
+        activateMatrix(panel, prediction.active);
+
+        const change24h = stat24h
+            ? parseFloat(stat24h.priceChangePercent)
+            : 0;
+
+        const high24h = stat24h
+            ? parseFloat(stat24h.highPrice)
+            : 0;
+
+        const low24h = stat24h
+            ? parseFloat(stat24h.lowPrice)
+            : 0;
+
+        infoEl.innerText =
+`SYMBOL : ${symbol}USDT
+PRICE : ${formatNumber(price)}
+24H % : ${change24h.toFixed(2)}%
+24H HIGH : ${formatNumber(high24h)}
+24H LOW : ${formatNumber(low24h)}
+
+5M MA : ${formatNumber(ma5)}
+15M MA : ${formatNumber(ma15)}
+30M MA : ${formatNumber(ma30)}
+
+VOLUME : ${formatNumber(currentVolume)}
+VOL MA : ${formatNumber(volumeMA)}
+
+RSI : ${rsi.toFixed(2)}
+MOMENTUM SCORE : ${momentumScore}
+VOLUME SCORE : ${volumeScore}
+RSI SCORE : ${rsiScore}
+MACRO SCORE : ${macroScore}
+
+TOTAL SCORE : ${totalScore}
+
+FEAR : ${fearData.value}
+FEAR TEXT : ${fearData.text}
+
+DXY : ${MACRO.dxy}
+DOW : ${MACRO.dow}
+VIX : ${MACRO.vix}
+GOLD : ${MACRO.gold}
+US10Y : ${MACRO.us10y}`;
+
+    }catch(e){
+
+        console.error(e);
+    }
+}
+
+async function renderMacroBox(){
+
+    const macroScore = getMacroScore();
+
+    const el = document.getElementById("macroScore");
+
+    if(!el){
+        return;
+    }
+
+    let text = "";
+
+    if(macroScore >= 2){
+        text = "MACRO RISK-ON ▲";
+    }else if(macroScore <= -2){
+        text = "MACRO RISK-OFF ▼";
+    }else{
+        text = "MACRO NEUTRAL ◎";
+    }
+
+    el.innerText =
+`${text}
+
+DXY : ${MACRO.dxy}
+DOW : ${MACRO.dow}
+VIX : ${MACRO.vix}
+GOLD : ${MACRO.gold}
+US10Y : ${MACRO.us10y}`;
+}
+
+async function refreshAll(){
+
+    await Promise.all([
+        analyzeCoin("left"),
+        analyzeCoin("right"),
+        renderMacroBox()
+    ]);
+}
+
+function bindButtons(){
+
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
+
+    if(leftBtn){
+        leftBtn.onclick = ()=>{
+            analyzeCoin("left");
+        };
+    }
+
+    if(rightBtn){
+        rightBtn.onclick = ()=>{
+            analyzeCoin("right");
+        };
+    }
+}
+
+updateHKTime();
+
+setInterval(updateHKTime, 1000);
+
+bindButtons();
+
+refreshAll();
+
+setInterval(refreshAll, 30000);
