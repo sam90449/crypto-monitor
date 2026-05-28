@@ -3,36 +3,50 @@ async function getBinancePrice(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`,
-            {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
-            }
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`
         );
-
-        if (!response.ok) {
-            return null;
-        }
 
         const data = await response.json();
 
-        if (!data.lastPrice) {
+        if (!data.price) {
             return null;
         }
 
         return {
-            price: parseFloat(data.lastPrice),
+            price: parseFloat(data.price)
+        };
+
+    } catch (e) {
+
+        console.log(e);
+
+        return null;
+
+    }
+
+}
+
+async function get24hData(symbol) {
+
+    try {
+
+        const response = await fetch(
+            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`
+        );
+
+        const data = await response.json();
+
+        return {
             changePercent: parseFloat(data.priceChangePercent || 0),
             volume: parseFloat(data.quoteVolume || 0)
         };
 
     } catch (e) {
 
-        console.log("BINANCE ERROR", e);
-
-        return null;
+        return {
+            changePercent: 0,
+            volume: 0
+        };
 
     }
 
@@ -43,18 +57,8 @@ async function getKlines(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`,
-            {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
-            }
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`
         );
-
-        if (!response.ok) {
-            return [];
-        }
 
         const data = await response.json();
 
@@ -63,13 +67,12 @@ async function getKlines(symbol) {
         }
 
         return data.map(k => ({
-            close: parseFloat(k[4]),
-            volume: parseFloat(k[5])
+            close: parseFloat(k[4])
         }));
 
     } catch (e) {
 
-        console.log("KLINE ERROR", e);
+        console.log(e);
 
         return [];
 
@@ -79,16 +82,14 @@ async function getKlines(symbol) {
 
 function calculateMA(data, period) {
 
-    if (!data || data.length < period) {
+    if (data.length < period) {
         return 0;
     }
 
-    const sliced = data.slice(-period);
-
     let total = 0;
 
-    for (const item of sliced) {
-        total += item.close;
+    for (let i = data.length - period; i < data.length; i++) {
+        total += data[i].close;
     }
 
     return total / period;
@@ -99,18 +100,17 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
 
     let score = 0;
 
-    if (price > ma5) score += 1;
-    else score -= 1;
+    if (price > ma5) score++;
+    else score--;
 
-    if (price > ma15) score += 1;
-    else score -= 1;
+    if (price > ma15) score++;
+    else score--;
 
-    if (price > ma30) score += 1;
-    else score -= 1;
+    if (price > ma30) score++;
+    else score--;
 
-    if (changePercent > 1) score += 1;
-
-    if (changePercent < -1) score -= 1;
+    if (changePercent > 1) score++;
+    if (changePercent < -1) score--;
 
     if (score >= 4) {
 
@@ -191,21 +191,6 @@ async function getMacroData() {
 
         const response = await fetch("/api/macro");
 
-        if (!response.ok) {
-
-            return {
-                fear: "N/A",
-                dxy: "N/A",
-                dow: "N/A",
-                vix: "N/A",
-                gold: "N/A",
-                us10y: "N/A",
-                fearText: "N/A",
-                updateTime: "N/A"
-            };
-
-        }
-
         return await response.json();
 
     } catch (e) {
@@ -217,8 +202,7 @@ async function getMacroData() {
             vix: "N/A",
             gold: "N/A",
             us10y: "N/A",
-            fearText: "N/A",
-            updateTime: "N/A"
+            fearText: "N/A"
         };
 
     }
@@ -232,13 +216,9 @@ function renderBoxes(count, type) {
     for (let i = 0; i < 4; i++) {
 
         if (i < count) {
-
             html += `<div class="small-box ${type}"></div>`;
-
         } else {
-
             html += `<div class="small-box"></div>`;
-
         }
 
     }
@@ -281,76 +261,6 @@ async function loadCoin(side) {
             ? document.getElementById("leftPrediction")
             : document.getElementById("rightPrediction");
 
-    const up1 =
-        side === "left"
-            ? document.getElementById("leftBoxes1")
-            : document.getElementById("rightBoxes1");
-
-    const up15 =
-        side === "left"
-            ? document.getElementById("leftBoxes15")
-            : document.getElementById("rightBoxes15");
-
-    const up2 =
-        side === "left"
-            ? document.getElementById("leftBoxes2")
-            : document.getElementById("rightBoxes2");
-
-    const down1 =
-        side === "left"
-            ? document.getElementById("leftDown1")
-            : document.getElementById("rightDown1");
-
-    const down15 =
-        side === "left"
-            ? document.getElementById("leftDown15")
-            : document.getElementById("rightDown15");
-
-    const down2 =
-        side === "left"
-            ? document.getElementById("leftDown2")
-            : document.getElementById("rightDown2");
-
-    const fear =
-        side === "left"
-            ? document.getElementById("leftFear")
-            : document.getElementById("rightFear");
-
-    const dxy =
-        side === "left"
-            ? document.getElementById("leftDxy")
-            : document.getElementById("rightDxy");
-
-    const dow =
-        side === "left"
-            ? document.getElementById("leftDow")
-            : document.getElementById("rightDow");
-
-    const vix =
-        side === "left"
-            ? document.getElementById("leftVix")
-            : document.getElementById("rightVix");
-
-    const gold =
-        side === "left"
-            ? document.getElementById("leftGold")
-            : document.getElementById("rightGold");
-
-    const us10y =
-        side === "left"
-            ? document.getElementById("leftUs10y")
-            : document.getElementById("rightUs10y");
-
-    const fearText =
-        side === "left"
-            ? document.getElementById("leftFearText")
-            : document.getElementById("rightFearText");
-
-    const update =
-        side === "left"
-            ? document.getElementById("leftUpdate")
-            : document.getElementById("rightUpdate");
-
     const symbol =
         symbolInput.value.trim().toUpperCase();
 
@@ -358,14 +268,16 @@ async function loadCoin(side) {
         return;
     }
 
-    symbolText.innerText = `${symbol}/USDT`;
+    symbolText.innerText =
+        `${symbol}/USDT`;
 
     priceText.innerText = "Loading...";
     predictionText.innerText = "Loading...";
 
-    const ticker = await getBinancePrice(symbol);
+    const priceData =
+        await getBinancePrice(symbol);
 
-    if (!ticker) {
+    if (!priceData) {
 
         priceText.innerText = "UNSUPPORTED";
         predictionText.innerText = "API ERROR";
@@ -374,90 +286,173 @@ async function loadCoin(side) {
 
     }
 
-    if (ticker.price >= 1000) {
-        priceText.innerText = ticker.price.toFixed(2);
+    const extraData =
+        await get24hData(symbol);
+
+    const klines =
+        await getKlines(symbol);
+
+    const ma5 =
+        calculateMA(klines, 5);
+
+    const ma15 =
+        calculateMA(klines, 15);
+
+    const ma30 =
+        calculateMA(klines, 30);
+
+    const prediction =
+        calculatePrediction(
+            priceData.price,
+            ma5,
+            ma15,
+            ma30,
+            extraData.changePercent
+        );
+
+    if (priceData.price >= 1000) {
+        priceText.innerText =
+            priceData.price.toFixed(2);
     } else {
-        priceText.innerText = ticker.price.toFixed(4);
+        priceText.innerText =
+            priceData.price.toFixed(4);
     }
 
-    const klines = await getKlines(symbol);
+    predictionText.innerText =
+        prediction.text;
 
-    const ma5 = calculateMA(klines, 5);
-    const ma15 = calculateMA(klines, 15);
-    const ma30 = calculateMA(klines, 30);
+    predictionText.style.color =
+        prediction.color;
 
-    const prediction = calculatePrediction(
-        ticker.price,
-        ma5,
-        ma15,
-        ma30,
-        ticker.changePercent
-    );
+    document.getElementById(
+        side === "left"
+            ? "leftBoxes1"
+            : "rightBoxes1"
+    ).innerHTML =
+        renderBoxes(prediction.up1, "green");
 
-    predictionText.innerText = prediction.text;
-    predictionText.style.color = prediction.color;
+    document.getElementById(
+        side === "left"
+            ? "leftBoxes15"
+            : "rightBoxes15"
+    ).innerHTML =
+        renderBoxes(prediction.up15, "green");
 
-    up1.innerHTML = renderBoxes(prediction.up1, "green");
-    up15.innerHTML = renderBoxes(prediction.up15, "green");
-    up2.innerHTML = renderBoxes(prediction.up2, "green");
+    document.getElementById(
+        side === "left"
+            ? "leftBoxes2"
+            : "rightBoxes2"
+    ).innerHTML =
+        renderBoxes(prediction.up2, "green");
 
-    down1.innerHTML = renderBoxes(prediction.down1, "red");
-    down15.innerHTML = renderBoxes(prediction.down15, "red");
-    down2.innerHTML = renderBoxes(prediction.down2, "red");
+    document.getElementById(
+        side === "left"
+            ? "leftDown1"
+            : "rightDown1"
+    ).innerHTML =
+        renderBoxes(prediction.down1, "red");
 
-    const macro = await getMacroData();
+    document.getElementById(
+        side === "left"
+            ? "leftDown15"
+            : "rightDown15"
+    ).innerHTML =
+        renderBoxes(prediction.down15, "red");
 
-    fear.innerText = macro.fear || "N/A";
-    dxy.innerText = macro.dxy || "N/A";
-    dow.innerText = macro.dow || "N/A";
-    vix.innerText = macro.vix || "N/A";
-    gold.innerText = macro.gold || "N/A";
-    us10y.innerText = macro.us10y || "N/A";
-    fearText.innerText = macro.fearText || "N/A";
+    document.getElementById(
+        side === "left"
+            ? "leftDown2"
+            : "rightDown2"
+    ).innerHTML =
+        renderBoxes(prediction.down2, "red");
 
-    update.innerText = getHKTime24();
+    const macro =
+        await getMacroData();
+
+    document.getElementById(
+        side === "left"
+            ? "leftFear"
+            : "rightFear"
+    ).innerText =
+        macro.fear || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftDxy"
+            : "rightDxy"
+    ).innerText =
+        macro.dxy || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftDow"
+            : "rightDow"
+    ).innerText =
+        macro.dow || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftVix"
+            : "rightVix"
+    ).innerText =
+        macro.vix || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftGold"
+            : "rightGold"
+    ).innerText =
+        macro.gold || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftUs10y"
+            : "rightUs10y"
+    ).innerText =
+        macro.us10y || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftFearText"
+            : "rightFearText"
+    ).innerText =
+        macro.fearText || "N/A";
+
+    document.getElementById(
+        side === "left"
+            ? "leftUpdate"
+            : "rightUpdate"
+    ).innerText =
+        getHKTime24();
 
 }
 
 window.onload = async function () {
 
-    const hkTime = document.getElementById("hkTime");
+    const hkTime =
+        document.getElementById("hkTime");
 
     if (hkTime) {
-        hkTime.innerText = getHKTime24();
+        hkTime.innerText =
+            getHKTime24();
     }
 
-    try {
+    await loadCoin("left");
 
-        await loadCoin("left");
+    await loadCoin("right");
 
-    } catch (e) {
-
-        console.log("LEFT LOAD ERROR", e);
-
-    }
-
-    try {
-
-        await loadCoin("right");
-
-    } catch (e) {
-
-        console.log("RIGHT LOAD ERROR", e);
-
-    }
-
-    const bottomLoading =
+    const loading =
         document.getElementById("bottomLoading");
 
-    if (bottomLoading) {
-        bottomLoading.innerText = "";
+    if (loading) {
+        loading.innerText = "";
     }
 
     setInterval(() => {
 
         if (hkTime) {
-            hkTime.innerText = getHKTime24();
+            hkTime.innerText =
+                getHKTime24();
         }
 
     }, 1000);
