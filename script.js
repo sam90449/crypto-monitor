@@ -1,280 +1,182 @@
-const BINANCE_URL = "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT";
+export default {
+  async fetch(request) {
 
-const FEAR_API = "https://api.alternative.me/fng/";
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+      "content-type": "application/json"
+    };
 
-const YAHOO_PROXY = "https://query1.finance.yahoo.com/v8/finance/chart/";
-
-const SYMBOLS = {
-    DXY: "DX-Y.NYB",
-    DOW: "^DJI",
-    VIX: "^VIX",
-    GOLD: "GC=F",
-    US10Y: "^TNX"
-};
-
-function createCells(targetId, filled, colorClass){
-
-    const box = document.getElementById(targetId);
-
-    box.innerHTML = "";
-
-    for(let i=0;i<4;i++){
-
-        const cell = document.createElement("div");
-
-        cell.className = "cell";
-
-        if(i < filled){
-
-            cell.classList.add(colorClass);
-        }
-
-        box.appendChild(cell);
+    if (request.method === "OPTIONS") {
+      return new Response("", { headers });
     }
-}
 
-function updatePredictionGrid(score){
+    try {
 
-    createCells("btc_up_1",0,"fill-green");
-    createCells("btc_up_15",0,"fill-green");
-    createCells("btc_up_2",0,"fill-green");
+      async function yahoo(symbol) {
 
-    createCells("btc_down_1",0,"fill-red");
-    createCells("btc_down_15",0,"fill-red");
-    createCells("btc_down_2",0,"fill-red");
+        const url =
+          `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`;
 
-    createCells("dow_up_1",0,"fill-green");
-    createCells("dow_up_15",0,"fill-green");
-    createCells("dow_up_2",0,"fill-green");
+        const r = await fetch(url, {
+          headers: {
+            "user-agent":
+              "Mozilla/5.0"
+          }
+        });
 
-    createCells("dow_down_1",0,"fill-red");
-    createCells("dow_down_15",0,"fill-red");
-    createCells("dow_down_2",0,"fill-red");
+        const j = await r.json();
 
-    if(score >= 5){
-
-        createCells("btc_up_1",1,"fill-green");
-        createCells("btc_up_15",2,"fill-green");
-        createCells("btc_up_2",3,"fill-green");
-
-    }else if(score >= 2){
-
-        createCells("btc_up_1",1,"fill-green");
-
-    }else if(score <= -5){
-
-        createCells("btc_down_1",1,"fill-red");
-        createCells("btc_down_15",2,"fill-red");
-        createCells("btc_down_2",3,"fill-red");
-
-    }else if(score <= -2){
-
-        createCells("btc_down_1",1,"fill-red");
-    }
-}
-
-async function fetchYahoo(symbol){
-
-    try{
-
-        const response = await fetch(
-            `${YAHOO_PROXY}${symbol}?interval=1d&range=2d`
-        );
-
-        const data = await response.json();
-
-        const result = data.chart.result[0];
+        const result = j.chart.result[0];
 
         const price = result.meta.regularMarketPrice;
 
-        const previous = result.meta.chartPreviousClose;
+        const prev = result.meta.chartPreviousClose;
 
-        const change = ((price - previous) / previous) * 100;
-
-        return {
-            price,
-            change
-        };
-
-    }catch(e){
+        const change = ((price - prev) / prev) * 100;
 
         return {
-            price:0,
-            change:0
+          price,
+          change
         };
-    }
-}
+      }
 
-async function fetchFear(){
+      async function fear() {
 
-    try{
+        const r = await fetch(
+          "https://api.alternative.me/fng/"
+        );
 
-        const response = await fetch(FEAR_API);
-
-        const data = await response.json();
-
-        return parseInt(data.data[0].value);
-
-    }catch(e){
-
-        return 50;
-    }
-}
-
-async function fetchBTC(){
-
-    const response = await fetch(BINANCE_URL);
-
-    const data = await response.json();
-
-    return {
-        price: parseFloat(data.lastPrice),
-        volume: parseFloat(data.quoteVolume),
-        change: parseFloat(data.priceChangePercent)
-    };
-}
-
-function marketFearText(v){
-
-    if(v <= 25) return "Extreme Fear";
-    if(v <= 45) return "Fear";
-    if(v <= 55) return "Neutral";
-    if(v <= 75) return "Greed";
-
-    return "Extreme Greed";
-}
-
-function buildMacro(score){
-
-    if(score >= 5){
+        const j = await r.json();
 
         return {
-            text:"🟢 宏觀方向：強勢看漲 | SCORE: "+score,
-            reason:"美元偏弱｜風險市場強勢"
+          value: parseInt(j.data[0].value),
+          text: j.data[0].value_classification
         };
-    }
+      }
 
-    if(score >= 2){
+      async function btc() {
+
+        const r = await fetch(
+          "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
+        );
+
+        const j = await r.json();
 
         return {
-            text:"🟡 宏觀方向：偏強看漲 | SCORE: "+score,
-            reason:"市場氣氛偏向風險資產"
+          price: parseFloat(j.lastPrice),
+          volume: parseFloat(j.quoteVolume),
+          change: parseFloat(j.priceChangePercent)
         };
+      }
+
+      const [
+        btcData,
+        fearData,
+        dxy,
+        dow,
+        vix,
+        gold,
+        us10y
+      ] = await Promise.all([
+        btc(),
+        fear(),
+        yahoo("DX-Y.NYB"),
+        yahoo("^DJI"),
+        yahoo("^VIX"),
+        yahoo("GC=F"),
+        yahoo("^TNX")
+      ]);
+
+      let score = 0;
+
+      if (dxy.change < 0) score += 1;
+      else score -= 1;
+
+      if (dow.change > 0) score += 1;
+      else score -= 1;
+
+      if (vix.change < 0) score += 1;
+      else score -= 1;
+
+      if (gold.change < 0) score += 1;
+      else score -= 1;
+
+      if (us10y.change < 0) score += 1;
+      else score -= 1;
+
+      if (fearData.value > 55) score += 1;
+      else if (fearData.value < 45) score -= 1;
+
+      let direction = "中性震盪";
+      let reason = "市場方向未明";
+
+      if (score >= 5) {
+        direction = "強勢看漲";
+        reason = "美元轉弱｜風險市場極強";
+      }
+      else if (score >= 2) {
+        direction = "偏強看漲";
+        reason = "市場氣氛偏多";
+      }
+      else if (score <= -5) {
+        direction = "強勢看跌";
+        reason = "避險情緒極強｜BTC偏弱";
+      }
+      else if (score <= -2) {
+        direction = "偏弱看跌";
+        reason = "美元偏強｜BTC偏弱";
+      }
+
+      const output = {
+
+        update_time_hk:
+          new Date().toLocaleString(
+            "zh-HK",
+            {
+              timeZone: "Asia/Hong_Kong"
+            }
+          ),
+
+        btc: btcData,
+
+        dxy,
+
+        dow,
+
+        vix,
+
+        gold,
+
+        us10y,
+
+        fear: fearData,
+
+        score,
+
+        direction,
+
+        reason
+      };
+
+      return new Response(
+        JSON.stringify(output),
+        {
+          headers
+        }
+      );
+
+    } catch (e) {
+
+      return new Response(
+        JSON.stringify({
+          error: e.toString()
+        }),
+        {
+          headers
+        }
+      );
     }
-
-    if(score <= -5){
-
-        return {
-            text:"🔴 宏觀方向：強勢看跌 | SCORE: "+score,
-            reason:"避險情緒極強｜BTC偏弱"
-        };
-    }
-
-    if(score <= -2){
-
-        return {
-            text:"🟠 宏觀方向：偏弱看跌 | SCORE: "+score,
-            reason:"美債偏強｜BTC中線偏弱"
-        };
-    }
-
-    return {
-        text:"🟡 宏觀方向：中性震盪 | SCORE: "+score,
-        reason:"市場方向未明"
-    };
+  }
 }
-
-async function loadData(){
-
-    try{
-
-        const btc = await fetchBTC();
-
-        const dxy = await fetchYahoo(SYMBOLS.DXY);
-
-        const dow = await fetchYahoo(SYMBOLS.DOW);
-
-        const vix = await fetchYahoo(SYMBOLS.VIX);
-
-        const gold = await fetchYahoo(SYMBOLS.GOLD);
-
-        const us10y = await fetchYahoo(SYMBOLS.US10Y);
-
-        const fear = await fetchFear();
-
-        let score = 0;
-
-        if(dxy.change < 0) score += 1;
-        else score -= 1;
-
-        if(dow.change > 0) score += 1;
-        else score -= 1;
-
-        if(vix.change < 0) score += 1;
-        else score -= 1;
-
-        if(gold.change < 0) score += 1;
-        else score -= 1;
-
-        if(us10y.change < 0) score += 1;
-        else score -= 1;
-
-        if(fear > 55) score += 1;
-        else if(fear < 45) score -= 1;
-
-        const macro = buildMacro(score);
-
-        updatePredictionGrid(score);
-
-        document.getElementById("majorAlert").innerHTML =
-            score <= -5
-            ? "⚠ Major Dump Risk"
-            : score >= 5
-            ? "🚀 Strong Bullish Momentum"
-            : "No Major Alert";
-
-        document.getElementById("shortPredict").innerHTML =
-            `短線預測 | 15m: ${(btc.change/18).toFixed(2)}% | 30m: ${(btc.change/9).toFixed(2)}%`;
-
-        document.getElementById("btcPrice").innerHTML =
-            `BTC: ${btc.price.toLocaleString()} USDT (${btc.change.toFixed(2)}%)`;
-
-        document.getElementById("btcVolume").innerHTML =
-            `BTC成交量: ${Math.round(btc.volume).toLocaleString()}`;
-
-        document.getElementById("macroDirection").innerHTML =
-            macro.text;
-
-        document.getElementById("macroReason").innerHTML =
-            macro.reason;
-
-        document.getElementById("dxyData").innerHTML =
-            `DXY美元指數: ${dxy.price.toFixed(2)} (${dxy.change.toFixed(2)}%)`;
-
-        document.getElementById("dowData").innerHTML =
-            `道瓊斯指數: ${dow.price.toLocaleString()} (${dow.change.toFixed(2)}%)`;
-
-        document.getElementById("us10yData").innerHTML =
-            `美債10年期: ${us10y.price.toFixed(2)}% (${us10y.change.toFixed(2)}%)`;
-
-        document.getElementById("vixData").innerHTML =
-            `恐慌指數(VIX): ${vix.price.toFixed(2)} (${vix.change.toFixed(2)}%)`;
-
-        document.getElementById("goldData").innerHTML =
-            `黃金: ${gold.price.toFixed(2)} (${gold.change.toFixed(2)}%)`;
-
-        document.getElementById("fearData").innerHTML =
-            `MARKET FEAR: ${marketFearText(fear)} (${fear})`;
-
-    }catch(e){
-
-        console.log(e);
-
-        document.getElementById("majorAlert").innerHTML =
-            "LOAD ERROR";
-    }
-}
-
-loadData();
-
-setInterval(loadData,30000);
