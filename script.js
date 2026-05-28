@@ -1,40 +1,19 @@
-async function getBinancePrice(symbol) {
+async function getCryptoData() {
 
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`,
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,the-open-network,solana,ripple,dogecoin,binancecoin,cardano,avalanche-2,chainlink&vs_currencies=usd",
             {
                 cache: "no-store"
             }
         );
 
-        const data = await response.json();
-
-        if (!data.price) {
-
-            return "UNSUPPORTED";
-
-        }
-
-        const price = Number(data.price);
-
-        if (
-            symbol === "XRP" ||
-            symbol === "DOGE" ||
-            symbol === "ADA" ||
-            symbol === "BABY"
-        ) {
-
-            return price.toFixed(4);
-
-        }
-
-        return price.toFixed(2);
+        return await response.json();
 
     } catch (e) {
 
-        return "N/A";
+        return null;
 
     }
 
@@ -51,276 +30,25 @@ async function getMacroData() {
             }
         );
 
-        const data = await response.json();
-
-        return data;
-
-    } catch (error) {
-
-        return {
-            error: error.toString()
-        };
-
-    }
-
-}
-
-async function getKlines(symbol, interval = "5m", limit = 30) {
-
-    try {
-
-        const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`,
-            {
-                cache: "no-store"
-            }
-        );
-
         return await response.json();
 
     } catch (e) {
-
-        return [];
-
-    }
-
-}
-
-function calculateMA(klines, period) {
-
-    if (!klines || klines.length < period) {
 
         return null;
 
     }
 
-    const closes = klines.map(
-        k => Number(k[4])
-    );
-
-    const sliced = closes.slice(-period);
-
-    const sum = sliced.reduce(
-        (a, b) => a + b,
-        0
-    );
-
-    return sum / period;
-
 }
 
-function calculateScore(
-    price,
-    ma5,
-    ma15,
-    ma30,
-    macroData
-) {
-
-    let score = 0;
-
-    // =========================
-    // PRICE VS MA
-    // =========================
-
-    if (price > ma5) {
-
-        score += 1;
-
-    } else {
-
-        score -= 1;
-
-    }
-
-    // =========================
-    // MA STRUCTURE
-    // =========================
-
-    if (ma5 > ma15) {
-
-        score += 1;
-
-    } else {
-
-        score -= 1;
-
-    }
-
-    if (ma15 > ma30) {
-
-        score += 1;
-
-    } else {
-
-        score -= 1;
-
-    }
-
-    // =========================
-    // DXY
-    // =========================
-
-    const dxyChange =
-        parseFloat(
-            String(
-                macroData.dxyChange || "0"
-            ).replace("%", "")
-        );
-
-    if (dxyChange < 0) {
-
-        score += 1;
-
-    } else {
-
-        score -= 1;
-
-    }
-
-    // =========================
-    // VIX
-    // =========================
-
-    const vixChange =
-        parseFloat(
-            String(
-                macroData.vixChange || "0"
-            ).replace("%", "")
-        );
-
-    if (vixChange < 0) {
-
-        score += 1;
-
-    } else {
-
-        score -= 1;
-
-    }
-
-    return score;
-
-}
-
-function getPredictionText(score) {
-
-    if (score >= 4) {
-
-        return "高勝算率偏多";
-
-    }
-
-    if (score >= 2) {
-
-        return "中等偏多";
-
-    }
-
-    if (score >= 1) {
-
-        return "低勝算率";
-
-    }
-
-    if (score <= -4) {
-
-        return "高風險偏空";
-
-    }
-
-    if (score <= -2) {
-
-        return "中等偏空";
-
-    }
-
-    return "中性震盪";
-
-}
-
-function renderColorBoxes(count, color) {
-
-    let html = "";
-
-    for (let i = 0; i < 4; i++) {
-
-        html += `
-            <div
-                class="small-box ${i < count ? color : ""}"
-            ></div>
-        `;
-
-    }
-
-    return html;
-
-}
-
-function renderBoxes(score) {
-
-    let green = 0;
-    let red = 0;
-
-    if (score >= 4) {
-
-        green = 4;
-
-    } else if (score >= 2) {
-
-        green = 3;
-
-    } else if (score >= 1) {
-
-        green = 2;
-
-    }
-
-    if (score <= -4) {
-
-        red = 4;
-
-    } else if (score <= -2) {
-
-        red = 3;
-
-    } else if (score <= -1) {
-
-        red = 2;
-
-    }
-
-    return `
-
-        <div class="box-grid">
-
-            <div class="box-row">
-
-                <div class="box-label green-text">
-                    ▲1%
-                </div>
-
-                <div class="box-container">
-                    ${renderColorBoxes(green, "green")}
-                </div>
-
-            </div>
-
-            <div class="box-row">
-
-                <div class="box-label red-text">
-                    ▼1%
-                </div>
-
-                <div class="box-container">
-                    ${renderColorBoxes(red, "red")}
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
+function setLoading(side) {
+
+    const priceId =
+        side === "left"
+            ? "leftPrice"
+            : "rightPrice";
+
+    document.getElementById(priceId).innerHTML =
+        "Loading...";
 
 }
 
@@ -358,69 +86,134 @@ async function loadCoin(side) {
             .trim()
             .toUpperCase();
 
-    document.getElementById(priceId).innerHTML =
-        "Loading...";
+    setLoading(side);
 
-    document.getElementById(predictionId).innerHTML =
-        "Loading...";
+    // =========================
+    // GET CRYPTO DATA
+    // =========================
 
-    document.getElementById(boxesId).innerHTML =
-        "";
+    const cryptoData =
+        await getCryptoData();
 
-    document.getElementById(infoId).innerHTML =
-        "Loading...";
-
-    // =====================================
-    // BINANCE PRICE
-    // =====================================
-
-    const coinPrice =
-        await getBinancePrice(symbol);
-
-    // =====================================
-    // MACRO DATA
-    // =====================================
+    // =========================
+    // GET MACRO DATA
+    // =========================
 
     const macroData =
         await getMacroData();
 
-    // =====================================
-    // KLINES
-    // =====================================
+    if (!cryptoData || !macroData) {
 
-    const klines =
-        await getKlines(symbol);
+        document.getElementById(priceId).innerHTML =
+            "API ERROR";
 
-    const price =
-        parseFloat(coinPrice);
+        return;
 
-    const ma5 =
-        calculateMA(klines, 5);
+    }
 
-    const ma15 =
-        calculateMA(klines, 15);
+    // =========================
+    // MAP SYMBOL
+    // =========================
 
-    const ma30 =
-        calculateMA(klines, 30);
+    let coinPrice = "UNSUPPORTED";
 
-    const score =
-        calculateScore(
-            price,
-            ma5,
-            ma15,
-            ma30,
-            macroData
-        );
+    if (symbol === "BTC") {
 
-    const predictionText =
-        getPredictionText(score);
+        coinPrice =
+            cryptoData?.bitcoin?.usd !== undefined
+                ? Number(
+                    cryptoData.bitcoin.usd
+                ).toFixed(2)
+                : "N/A";
 
-    // =====================================
+    } else if (symbol === "ETH") {
+
+        coinPrice =
+            cryptoData?.ethereum?.usd !== undefined
+                ? Number(
+                    cryptoData.ethereum.usd
+                ).toFixed(2)
+                : "N/A";
+
+    } else if (symbol === "TON") {
+
+        coinPrice =
+            cryptoData?.["the-open-network"]?.usd !== undefined
+                ? Number(
+                    cryptoData["the-open-network"].usd
+                ).toFixed(2)
+                : "N/A";
+
+    } else if (symbol === "SOL") {
+
+        coinPrice =
+            cryptoData?.solana?.usd !== undefined
+                ? Number(
+                    cryptoData.solana.usd
+                ).toFixed(2)
+                : "N/A";
+
+    } else if (symbol === "XRP") {
+
+        coinPrice =
+            cryptoData?.ripple?.usd !== undefined
+                ? Number(
+                    cryptoData.ripple.usd
+                ).toFixed(4)
+                : "N/A";
+
+    } else if (symbol === "DOGE") {
+
+        coinPrice =
+            cryptoData?.dogecoin?.usd !== undefined
+                ? Number(
+                    cryptoData.dogecoin.usd
+                ).toFixed(4)
+                : "N/A";
+
+    } else if (symbol === "BNB") {
+
+        coinPrice =
+            cryptoData?.binancecoin?.usd !== undefined
+                ? Number(
+                    cryptoData.binancecoin.usd
+                ).toFixed(2)
+                : "N/A";
+
+    } else if (symbol === "ADA") {
+
+        coinPrice =
+            cryptoData?.cardano?.usd !== undefined
+                ? Number(
+                    cryptoData.cardano.usd
+                ).toFixed(4)
+                : "N/A";
+
+    } else if (symbol === "AVAX") {
+
+        coinPrice =
+            cryptoData?.["avalanche-2"]?.usd !== undefined
+                ? Number(
+                    cryptoData["avalanche-2"].usd
+                ).toFixed(2)
+                : "N/A";
+
+    } else if (symbol === "LINK") {
+
+        coinPrice =
+            cryptoData?.chainlink?.usd !== undefined
+                ? Number(
+                    cryptoData.chainlink.usd
+                ).toFixed(2)
+                : "N/A";
+
+    }
+
+    // =========================
     // PRICE
-    // =====================================
+    // =========================
 
     document.getElementById(priceId).innerHTML = `
-
         <div class="coin-symbol">
             ${symbol}/USDT
         </div>
@@ -428,93 +221,127 @@ async function loadCoin(side) {
         <div class="coin-value">
             ${coinPrice}
         </div>
-
     `;
 
-    // =====================================
+    // =========================
     // PREDICTION
-    // =====================================
+    // =========================
 
     document.getElementById(predictionId).innerHTML = `
-
         <div class="prediction-title">
             1-3H AI PREDICTION
         </div>
 
         <div class="prediction-status">
-            ${predictionText}
-            ${macroData.icon || "🟣"}
+            ${macroData.status}
+            ${macroData.icon}
         </div>
-
     `;
 
-    // =====================================
+    // =========================
     // BOXES
-    // =====================================
+    // =========================
 
-    document.getElementById(boxesId).innerHTML =
-        renderBoxes(score);
+    document.getElementById(boxesId).innerHTML = `
+        <div class="mini-box">
+            <div class="mini-title">
+                FEAR
+            </div>
 
-    // =====================================
+            <div class="mini-value">
+                ${macroData.fear}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                BTC DOM
+            </div>
+
+            <div class="mini-value">
+                ${macroData.btcDom}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                BTC CHANGE
+            </div>
+
+            <div class="mini-value">
+                ${macroData.btcChange}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                VOLUME
+            </div>
+
+            <div class="mini-value">
+                ${macroData.btcVolume}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                TOTAL CAP
+            </div>
+
+            <div class="mini-value">
+                ${macroData.totalCap}
+            </div>
+        </div>
+
+        <div class="mini-box">
+            <div class="mini-title">
+                UPDATE
+            </div>
+
+            <div class="mini-value">
+                ${macroData.updateTime}
+            </div>
+        </div>
+    `;
+
+    // =========================
     // INFO
-    // =====================================
+    // =========================
 
     document.getElementById(infoId).innerHTML = `
-
         <div class="global-line">
             FEAR:
-            ${macroData.fear || "N/A"}
+            ${macroData.fear}
+            (${macroData.fearText})
         </div>
 
         <div class="global-line">
             BTC DOM:
-            ${macroData.btcDom || "N/A"}
+            ${macroData.btcDom}
         </div>
 
         <div class="global-line">
-            BTC CHANGE:
-            ${macroData.btcChange || "N/A"}
+            TOTAL CAP:
+            ${macroData.totalCap}
         </div>
 
         <div class="global-line">
             BTC VOL:
-            ${macroData.btcVolume || "N/A"}
+            ${macroData.btcVolume}
         </div>
-
-        <div class="global-line">
-            MA5:
-            ${ma5 ? ma5.toFixed(2) : "N/A"}
-        </div>
-
-        <div class="global-line">
-            MA15:
-            ${ma15 ? ma15.toFixed(2) : "N/A"}
-        </div>
-
-        <div class="global-line">
-            MA30:
-            ${ma30 ? ma30.toFixed(2) : "N/A"}
-        </div>
-
-        <div class="global-line">
-            SCORE:
-            ${score}
-        </div>
-
     `;
 
-    // =====================================
+    // =========================
     // UPDATE TIME
-    // =====================================
+    // =========================
 
     document.getElementById("updateTime").innerHTML =
-
         "HK UPDATE TIME: " +
-        (macroData.updateTime || "N/A");
+        macroData.updateTime;
 
-    // =====================================
-    // GLOBAL MACRO
-    // =====================================
+    // =========================
+    // MACRO AREA
+    // =========================
 
     document.getElementById("macroArea").innerHTML = `
 
@@ -526,32 +353,32 @@ async function loadCoin(side) {
 
             <div class="global-line">
                 DXY:
-                ${macroData.dxy || "N/A"}
-                (${macroData.dxyChange || "N/A"})
+                ${macroData.dxy}
+                (${macroData.dxyChange})
             </div>
 
             <div class="global-line">
                 DOW:
-                ${macroData.dow || "N/A"}
-                (${macroData.dowChange || "N/A"})
+                ${macroData.dow}
+                (${macroData.dowChange})
             </div>
 
             <div class="global-line">
                 VIX:
-                ${macroData.vix || "N/A"}
-                (${macroData.vixChange || "N/A"})
+                ${macroData.vix}
+                (${macroData.vixChange})
             </div>
 
             <div class="global-line">
                 GOLD:
-                ${macroData.gold || "N/A"}
-                (${macroData.goldChange || "N/A"})
+                ${macroData.gold}
+                (${macroData.goldChange})
             </div>
 
             <div class="global-line">
                 US10Y:
-                ${macroData.us10y || "N/A"}
-                (${macroData.us10yChange || "N/A"})
+                ${macroData.us10y}
+                (${macroData.us10yChange})
             </div>
 
         </div>
