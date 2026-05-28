@@ -1,157 +1,129 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width,initial-scale=1.0"
-/>
-
-<title>
-Crypto Monitor
-</title>
-
-<link
-rel="stylesheet"
-href="style.css"
-/>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Monitor</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="main-title">
+<h1 class="main-title">DUAL COIN 1-3H AI PREDICTOR</h1>
 
-DUAL COIN 1-3H AI PREDICTOR
-
-</div>
-
-<div
-id="updateTime"
-class="update-time"
->
+<div class="update-time" id="updateTime">
 HK UPDATE TIME
 </div>
 
-<div class="main-container">
+<div class="container">
 
-<div class="coin-panel">
+<div class="coin-box">
 
-<div class="coin-title">
-
-LEFT COIN
-
-</div>
+<h2>LEFT COIN</h2>
 
 <div class="input-row">
+<input id="leftInput" value="TON">
+<button onclick="loadCoin('left')">LOAD</button>
+</div>
 
-<input
-id="leftInput"
-value="TON"
-/>
+<div id="leftContent">
 
-<button
-onclick="loadCoin('left')"
->
-LOAD
-</button>
+<div class="symbol">TON/USDT</div>
+
+<div class="price">0.00</div>
+
+<div class="prediction-title">
+1-3H AI PREDICTION:
+</div>
+
+<div class="prediction strong-bear">
+強烈看跌 ▼
+</div>
+
+<div class="levels">
+
+<div>▲1%</div>
+<div>▲1.5%</div>
+<div>▲2%</div>
+
+<div class="down">▼1%</div>
+<div class="down">▼1.5%</div>
+<div class="down">▼2%</div>
 
 </div>
 
-<div
-id="leftPrice"
-class="price"
->
-Loading...
+<div class="market-info">
+
+<div>FEAR:<br><span id="fear-left">0</span></div>
+<div>DXY:<br><span id="dxy-left">0</span></div>
+<div>DOW:<br><span id="dow-left">0</span></div>
+<div>VIX:<br><span id="vix-left">0</span></div>
+<div>GOLD:<br><span id="gold-left">0</span></div>
+<div>US10Y:<br><span id="us10-left">0</span></div>
+<div>MARKET FEAR:<br><span id="feartext-left">Loading</span></div>
+<div>UPDATE:<br><span id="update-left">--</span></div>
+
 </div>
 
-<div
-id="leftPrediction"
-class="prediction"
->
-Loading...
-</div>
-
-<div
-id="leftBoxes"
-class="predict-boxes"
->
-</div>
-
-<div
-id="leftInfo"
-class="info"
->
-Loading...
 </div>
 
 </div>
 
-<div class="coin-panel">
+<div class="coin-box">
 
-<div class="coin-title">
-
-RIGHT COIN
-
-</div>
+<h2>RIGHT COIN</h2>
 
 <div class="input-row">
+<input id="rightInput" value="BTC">
+<button onclick="loadCoin('right')">LOAD</button>
+</div>
 
-<input
-id="rightInput"
-value="BTC"
-/>
+<div id="rightContent">
 
-<button
-onclick="loadCoin('right')"
->
-LOAD
-</button>
+<div class="symbol">BTC/USDT</div>
+
+<div class="price">0.00</div>
+
+<div class="prediction-title">
+1-3H AI PREDICTION:
+</div>
+
+<div class="prediction light-bear">
+輕微看跌 ●
+</div>
+
+<div class="levels">
+
+<div>▲1%</div>
+<div>▲1.5%</div>
+<div>▲2%</div>
+
+<div class="down">▼1%</div>
+<div class="down">▼1.5%</div>
+<div class="down">▼2%</div>
 
 </div>
 
-<div
-id="rightPrice"
-class="price"
->
-Loading...
+<div class="market-info">
+
+<div>FEAR:<br><span id="fear-right">0</span></div>
+<div>DXY:<br><span id="dxy-right">0</span></div>
+<div>DOW:<br><span id="dow-right">0</span></div>
+<div>VIX:<br><span id="vix-right">0</span></div>
+<div>GOLD:<br><span id="gold-right">0</span></div>
+<div>US10Y:<br><span id="us10-right">0</span></div>
+<div>MARKET FEAR:<br><span id="feartext-right">Loading</span></div>
+<div>UPDATE:<br><span id="update-right">--</span></div>
+
 </div>
 
-<div
-id="rightPrediction"
-class="prediction"
->
-Loading...
-</div>
-
-<div
-id="rightBoxes"
-class="predict-boxes"
->
-</div>
-
-<div
-id="rightInfo"
-class="info"
->
-Loading...
 </div>
 
 </div>
 
 </div>
 
-<div
-id="macroArea"
-class="macro-panel"
->
-Loading...
-</div>
-
-<script src="newapp.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
