@@ -14,33 +14,35 @@ body {
 }
 
 .main-title {
-    font-size: 64px;
+    font-size: 72px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
+    color: white;
 }
 
 .update-time {
-    font-size: 22px;
-    margin-bottom: 30px;
+    font-size: 24px;
     color: #d1d5db;
+    margin-bottom: 30px;
 }
 
 .coins-wrapper {
-    display: flex;
-    gap: 28px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
 }
 
 .coin-panel {
-    flex: 1;
-    min-width: 420px;
-    background: #0f172a;
-    border-radius: 22px;
+    background: #0b1328;
+    border-radius: 24px;
     padding: 24px;
+    min-height: 1180px;
+    box-sizing: border-box;
 }
 
 .coin-title {
-    font-size: 34px;
+    font-size: 56px;
     font-weight: bold;
     margin-bottom: 24px;
 }
@@ -53,79 +55,80 @@ body {
 
 .coin-input {
     flex: 1;
-    height: 68px;
+    height: 72px;
     background: black;
     color: #00ffe0;
     border: 2px solid #374151;
-    border-radius: 12px;
+    border-radius: 14px;
     padding-left: 18px;
-    font-size: 28px;
+    font-size: 34px;
+    outline: none;
 }
 
 .load-btn {
-    width: 130px;
+    width: 150px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #19c37d;
     color: white;
-    font-size: 24px;
+    font-size: 30px;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .coin-symbol {
-    font-size: 52px;
+    font-size: 72px;
     color: #00ffe0;
     margin-top: 10px;
     margin-bottom: 10px;
+    font-weight: bold;
 }
 
 .coin-price {
-    font-size: 46px;
+    font-size: 62px;
     font-weight: bold;
-    margin-bottom: 24px;
-}
-
-.unsupported {
-    color: #00ffe0;
+    margin-bottom: 34px;
+    color: white;
 }
 
 .prediction-title {
-    font-size: 26px;
-    margin-bottom: 16px;
+    font-size: 36px;
+    margin-bottom: 18px;
 }
 
 .prediction-main {
-    font-size: 38px;
+    font-size: 56px;
     font-weight: bold;
     margin-bottom: 28px;
+    color: white;
 }
 
 .prediction-grid {
     margin-top: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 50px;
 }
 
 .prediction-row {
     display: flex;
     align-items: center;
     gap: 18px;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
 }
 
 .prediction-label {
-    width: 80px;
-    font-size: 28px;
+    width: 110px;
+    font-size: 40px;
     font-weight: bold;
 }
 
 .prediction-boxes {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .small-box {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
     border: 2px solid #6b7280;
     background: #1f2937;
 }
@@ -151,62 +154,87 @@ body {
 .info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+    gap: 22px;
     margin-top: 24px;
 }
 
 .info-card {
     background: #1e293b;
-    border-radius: 16px;
-    padding: 18px;
-    min-height: 110px;
+    border-radius: 18px;
+    padding: 22px;
+    min-height: 130px;
+    box-sizing: border-box;
 }
 
 .info-title {
-    font-size: 22px;
+    font-size: 28px;
     color: #d1d5db;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .info-value {
-    font-size: 24px;
+    font-size: 34px;
     font-weight: bold;
     word-break: break-word;
 }
 
-.loading-text {
-    font-size: 28px;
-    color: #d1d5db;
-}
-
 .bottom-panel {
-    margin-top: 30px;
+    margin-top: 32px;
     background: #0f172a;
-    border-radius: 20px;
-    padding: 24px;
+    border-radius: 24px;
+    padding: 28px;
 }
 
 .bottom-line {
-    font-size: 28px;
-    margin-bottom: 16px;
+    font-size: 32px;
+    margin-bottom: 18px;
 }
 
-@media screen and (max-width: 1000px) {
+.loading-text {
+    font-size: 30px;
+    color: #d1d5db;
+}
+
+@media screen and (max-width: 1200px) {
 
     .coins-wrapper {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .coin-panel {
+        min-height: auto;
     }
 
     .main-title {
+        font-size: 48px;
+    }
+
+    .coin-title {
         font-size: 42px;
     }
 
     .coin-symbol {
-        font-size: 38px;
+        font-size: 48px;
     }
 
     .coin-price {
-        font-size: 34px;
+        font-size: 44px;
+    }
+
+    .prediction-main {
+        font-size: 42px;
+    }
+
+    .prediction-label {
+        font-size: 30px;
+    }
+
+    .info-title {
+        font-size: 22px;
+    }
+
+    .info-value {
+        font-size: 28px;
     }
 
 }
