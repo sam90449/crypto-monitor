@@ -3,7 +3,7 @@ async function getBinancePrice(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`,
+            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`,
             {
                 cache: "no-store"
             }
@@ -11,19 +11,142 @@ async function getBinancePrice(symbol) {
 
         const data = await response.json();
 
-        if (!data.price) {
-
-            return "UNSUPPORTED";
-
+        if (!data.lastPrice) {
+            return null;
         }
 
-        return Number(data.price);
+        return {
+            price: Number(data.lastPrice),
+            changePercent: Number(data.priceChangePercent),
+            volume: Number(data.quoteVolume)
+        };
 
-    } catch (error) {
+    } catch (e) {
 
-        return "API ERROR";
+        return null;
 
     }
+
+}
+
+async function getKlines(symbol, interval = "15m", limit = 48) {
+
+    try {
+
+        const response = await fetch(
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`,
+            {
+                cache: "no-store"
+            }
+        );
+
+        const data = await response.json();
+
+        return data.map(k => ({
+            close: Number(k[4]),
+            volume: Number(k[5])
+        }));
+
+    } catch (e) {
+
+        return [];
+
+    }
+
+}
+
+function calculateMA(data, period) {
+
+    if (data.length < period) {
+        return 0;
+    }
+
+    const sliced = data.slice(-period);
+
+    const sum = sliced.reduce((a, b) => a + b.close, 0);
+
+    return sum / period;
+
+}
+
+function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
+
+    let score = 0;
+
+    if (price > ma5) score += 1;
+    else score -= 1;
+
+    if (price > ma15) score += 1;
+    else score -= 1;
+
+    if (price > ma30) score += 1;
+    else score -= 1;
+
+    if (changePercent > 1) score += 1;
+    if (changePercent < -1) score -= 1;
+
+    if (score >= 4) {
+        return {
+            text: "強烈看漲 🚀",
+            color: "#00ff95",
+            up1: 4,
+            up15: 4,
+            up2: 3,
+            down1: 0,
+            down15: 0,
+            down2: 0
+        };
+    }
+
+    if (score >= 2) {
+        return {
+            text: "偏向上升 📈",
+            color: "#00e5ff",
+            up1: 3,
+            up15: 2,
+            up2: 2,
+            down1: 1,
+            down15: 0,
+            down2: 0
+        };
+    }
+
+    if (score <= -4) {
+        return {
+            text: "強烈看跌 📉",
+            color: "#ff4d4f",
+            up1: 0,
+            up15: 0,
+            up2: 0,
+            down1: 4,
+            down15: 4,
+            down2: 3
+        };
+    }
+
+    if (score <= -2) {
+        return {
+            text: "偏向下跌 ⚠️",
+            color: "#ff7a7a",
+            up1: 1,
+            up15: 0,
+            up2: 0,
+            down1: 3,
+            down15: 2,
+            down2: 2
+        };
+    }
+
+    return {
+        text: "中性震盪 🟣",
+        color: "#b388ff",
+        up1: 1,
+        up15: 1,
+        up2: 0,
+        down1: 1,
+        down15: 1,
+        down2: 0
+    };
 
 }
 
@@ -31,50 +154,38 @@ async function getMacroData() {
 
     try {
 
-        const response = await fetch("/api/macro", {
-            cache: "no-store"
-        });
+        const response = await fetch("/api/macro");
 
         const data = await response.json();
 
         return data;
 
-    } catch (error) {
+    } catch (e) {
 
         return {
-
-            btc: "N/A",
-            eth: "N/A",
-            btcChange: "N/A",
-            btcVolume: "N/A",
-            totalCap: "N/A",
-            btcDom: "N/A",
+            fear: "N/A",
             dxy: "N/A",
             dow: "N/A",
             vix: "N/A",
-            us10y: "N/A",
             gold: "N/A",
-            fear: "N/A",
+            us10y: "N/A",
             fearText: "N/A",
-            status: "中性震盪",
-            icon: "🟣",
             updateTime: "N/A"
-
         };
 
     }
 
 }
 
-function createBoxes(active, color) {
+function renderBoxes(count, type) {
 
     let html = "";
 
     for (let i = 0; i < 4; i++) {
 
-        if (i < active) {
+        if (i < count) {
 
-            html += `<div class="small-box ${color}"></div>`;
+            html += `<div class="small-box ${type}"></div>`;
 
         } else {
 
@@ -88,470 +199,189 @@ function createBoxes(active, color) {
 
 }
 
-function renderPredictionBoxes(score) {
+function hkTime24h() {
 
-    let up1 = 0;
-    let up15 = 0;
-    let up2 = 0;
+    const now = new Date();
 
-    let down1 = 0;
-    let down15 = 0;
-    let down2 = 0;
-
-    if (score >= 1) {
-
-        up1 = 1;
-
-    }
-
-    if (score >= 2) {
-
-        up1 = 2;
-        up15 = 1;
-
-    }
-
-    if (score >= 3) {
-
-        up1 = 3;
-        up15 = 2;
-
-    }
-
-    if (score >= 4) {
-
-        up1 = 4;
-        up15 = 3;
-        up2 = 2;
-
-    }
-
-    if (score >= 5) {
-
-        up1 = 4;
-        up15 = 4;
-        up2 = 3;
-
-    }
-
-    if (score <= -1) {
-
-        down1 = 1;
-
-    }
-
-    if (score <= -2) {
-
-        down1 = 2;
-        down15 = 1;
-
-    }
-
-    if (score <= -3) {
-
-        down1 = 3;
-        down15 = 2;
-
-    }
-
-    if (score <= -4) {
-
-        down1 = 4;
-        down15 = 3;
-        down2 = 2;
-
-    }
-
-    if (score <= -5) {
-
-        down1 = 4;
-        down15 = 4;
-        down2 = 3;
-
-    }
-
-    return `
-
-        <div class="prediction-grid">
-
-            <div class="prediction-row">
-
-                <div class="prediction-label green-text">
-                    ▲1%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(up1, "green")}
-                </div>
-
-            </div>
-
-            <div class="prediction-row">
-
-                <div class="prediction-label green-text">
-                    ▲1.5%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(up15, "green")}
-                </div>
-
-            </div>
-
-            <div class="prediction-row">
-
-                <div class="prediction-label green-text">
-                    ▲2%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(up2, "green")}
-                </div>
-
-            </div>
-
-            <div class="prediction-row">
-
-                <div class="prediction-label red-text">
-                    ▼1%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(down1, "red")}
-                </div>
-
-            </div>
-
-            <div class="prediction-row">
-
-                <div class="prediction-label red-text">
-                    ▼1.5%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(down15, "red")}
-                </div>
-
-            </div>
-
-            <div class="prediction-row">
-
-                <div class="prediction-label red-text">
-                    ▼2%
-                </div>
-
-                <div class="prediction-boxes">
-                    ${createBoxes(down2, "red")}
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
+    return now.toLocaleString("en-GB", {
+        timeZone: "Asia/Hong_Kong",
+        hour12: false
+    });
 
 }
 
 async function loadCoin(side) {
 
-    const inputId =
-        side === "left"
-            ? "leftInput"
-            : "rightInput";
+    const inputId = side === "left"
+        ? "leftInput"
+        : "rightInput";
 
-    const priceId =
-        side === "left"
-            ? "leftPrice"
-            : "rightPrice";
+    const symbolId = side === "left"
+        ? "leftSymbol"
+        : "rightSymbol";
 
-    const predictionId =
-        side === "left"
-            ? "leftPrediction"
-            : "rightPrediction";
+    const priceId = side === "left"
+        ? "leftPrice"
+        : "rightPrice";
 
-    const boxesId =
-        side === "left"
-            ? "leftBoxes"
-            : "rightBoxes";
+    const predictionId = side === "left"
+        ? "leftPrediction"
+        : "rightPrediction";
 
-    const infoId =
-        side === "left"
-            ? "leftInfo"
-            : "rightInfo";
+    const boxes1Id = side === "left"
+        ? "leftBoxes1"
+        : "rightBoxes1";
 
-    const symbol =
-        document
-            .getElementById(inputId)
-            .value
-            .trim()
-            .toUpperCase();
+    const boxes15Id = side === "left"
+        ? "leftBoxes15"
+        : "rightBoxes15";
 
-    document.getElementById(priceId).innerHTML =
-        `
-        <div class="loading-text">
-            Loading...
-        </div>
-        `;
+    const boxes2Id = side === "left"
+        ? "leftBoxes2"
+        : "rightBoxes2";
 
-    document.getElementById(predictionId).innerHTML =
-        `
-        <div class="loading-text">
-            Loading...
-        </div>
-        `;
+    const down1Id = side === "left"
+        ? "leftDown1"
+        : "rightDown1";
 
-    document.getElementById(boxesId).innerHTML =
-        "";
+    const down15Id = side === "left"
+        ? "leftDown15"
+        : "rightDown15";
 
-    document.getElementById(infoId).innerHTML =
-        `
-        <div class="loading-text">
-            Loading...
-        </div>
-        `;
+    const down2Id = side === "left"
+        ? "leftDown2"
+        : "rightDown2";
 
-    const price =
-        await getBinancePrice(symbol);
+    const macroFearId = side === "left"
+        ? "leftFear"
+        : "rightFear";
 
-    const macro =
-        await getMacroData();
+    const macroDxyId = side === "left"
+        ? "leftDxy"
+        : "rightDxy";
 
-    if (
-        price === "UNSUPPORTED" ||
-        price === "API ERROR"
-    ) {
+    const macroDowId = side === "left"
+        ? "leftDow"
+        : "rightDow";
 
-        document.getElementById(priceId).innerHTML =
-            `
-            <div class="coin-symbol">
-                ${symbol}/USDT
-            </div>
+    const macroVixId = side === "left"
+        ? "leftVix"
+        : "rightVix";
 
-            <div class="coin-price unsupported">
-                ${price}
-            </div>
-            `;
+    const macroGoldId = side === "left"
+        ? "leftGold"
+        : "rightGold";
 
-        document.getElementById(predictionId).innerHTML =
-            `
-            <div class="prediction-title">
-                1-3H AI PREDICTION:
-            </div>
+    const macroUs10yId = side === "left"
+        ? "leftUs10y"
+        : "rightUs10y";
 
-            <div class="prediction-main">
-                中性震盪 🟣
-            </div>
-            `;
+    const macroFearTextId = side === "left"
+        ? "leftFearText"
+        : "rightFearText";
+
+    const macroUpdateId = side === "left"
+        ? "leftUpdate"
+        : "rightUpdate";
+
+    const symbol = document
+        .getElementById(inputId)
+        .value
+        .trim()
+        .toUpperCase();
+
+    if (!symbol) {
+        return;
+    }
+
+    document.getElementById(symbolId).innerText = `${symbol}/USDT`;
+
+    document.getElementById(priceId).innerText = "Loading...";
+
+    const ticker = await getBinancePrice(symbol);
+
+    if (!ticker) {
+
+        document.getElementById(priceId).innerText = "UNSUPPORTED";
 
         return;
 
     }
 
-    let score = 0;
+    document.getElementById(priceId).innerText =
+        ticker.price.toFixed(
+            ticker.price >= 1000 ? 2 : 4
+        );
 
-    if (macro.fear <= 25) {
+    const klines = await getKlines(symbol);
 
-        score -= 1;
+    const ma5 = calculateMA(klines, 5);
 
-    }
+    const ma15 = calculateMA(klines, 15);
 
-    if (macro.dxy !== "N/A") {
+    const ma30 = calculateMA(klines, 30);
 
-        const dxy =
-            parseFloat(
-                String(macro.dxy)
-                    .replace(/[^\d.-]/g, "")
-            );
+    const prediction = calculatePrediction(
+        ticker.price,
+        ma5,
+        ma15,
+        ma30,
+        ticker.changePercent
+    );
 
-        if (dxy <= 100) {
+    const predictionEl = document.getElementById(predictionId);
 
-            score += 1;
+    predictionEl.innerText = prediction.text;
 
-        } else {
+    predictionEl.style.color = prediction.color;
 
-            score -= 1;
+    document.getElementById(boxes1Id).innerHTML =
+        renderBoxes(prediction.up1, "green");
 
-        }
+    document.getElementById(boxes15Id).innerHTML =
+        renderBoxes(prediction.up15, "green");
 
-    }
+    document.getElementById(boxes2Id).innerHTML =
+        renderBoxes(prediction.up2, "green");
 
-    if (macro.vix !== "N/A") {
+    document.getElementById(down1Id).innerHTML =
+        renderBoxes(prediction.down1, "red");
 
-        const vix =
-            parseFloat(
-                String(macro.vix)
-                    .replace(/[^\d.-]/g, "")
-            );
+    document.getElementById(down15Id).innerHTML =
+        renderBoxes(prediction.down15, "red");
 
-        if (vix >= 25) {
+    document.getElementById(down2Id).innerHTML =
+        renderBoxes(prediction.down2, "red");
 
-            score -= 1;
+    const macro = await getMacroData();
 
-        }
-
-    }
-
-    let prediction = "中性震盪";
-    let icon = "🟣";
-
-    if (score >= 3) {
-
-        prediction = "強勢看升";
-        icon = "🟢";
-
-    } else if (score >= 1) {
-
-        prediction = "偏向看升";
-        icon = "🟡";
-
-    } else if (score <= -3) {
-
-        prediction = "強勢看跌";
-        icon = "🔴";
-
-    } else if (score <= -1) {
-
-        prediction = "偏向看跌";
-        icon = "🟠";
-
-    }
-
-    document.getElementById(priceId).innerHTML =
-        `
-        <div class="coin-symbol">
-            ${symbol}/USDT
-        </div>
-
-        <div class="coin-price">
-            ${price}
-        </div>
-        `;
-
-    document.getElementById(predictionId).innerHTML =
-        `
-        <div class="prediction-title">
-            1-3H AI PREDICTION:
-        </div>
-
-        <div class="prediction-main">
-            ${prediction} ${icon}
-        </div>
-        `;
-
-    document.getElementById(boxesId).innerHTML =
-        renderPredictionBoxes(score);
-
-    document.getElementById(infoId).innerHTML =
-        `
-
-        <div class="info-grid">
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    FEAR:
-                </div>
-
-                <div class="info-value">
-                    ${macro.fear}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    DXY:
-                </div>
-
-                <div class="info-value">
-                    ${macro.dxy}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    DOW:
-                </div>
-
-                <div class="info-value">
-                    ${macro.dow}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    VIX:
-                </div>
-
-                <div class="info-value">
-                    ${macro.vix}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    GOLD:
-                </div>
-
-                <div class="info-value">
-                    ${macro.gold}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    US10Y:
-                </div>
-
-                <div class="info-value">
-                    ${macro.us10y}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    MARKET FEAR:
-                </div>
-
-                <div class="info-value">
-                    ${macro.fearText}
-                </div>
-
-            </div>
-
-            <div class="info-card">
-
-                <div class="info-title">
-                    UPDATE:
-                </div>
-
-                <div class="info-value">
-                    ${macro.updateTime}
-                </div>
-
-            </div>
-
-        </div>
-
-        `;
+    document.getElementById(macroFearId).innerText = macro.fear;
+    document.getElementById(macroDxyId).innerText = macro.dxy;
+    document.getElementById(macroDowId).innerText = macro.dow;
+    document.getElementById(macroVixId).innerText = macro.vix;
+    document.getElementById(macroGoldId).innerText = macro.gold;
+    document.getElementById(macroUs10yId).innerText = macro.us10y;
+    document.getElementById(macroFearTextId).innerText = macro.fearText;
+    document.getElementById(macroUpdateId).innerText = hkTime24h();
 
 }
 
-window.onload = () => {
+window.onload = async function () {
 
-    loadCoin("left");
+    document.getElementById("hkTime").innerText =
+        hkTime24h();
 
-    loadCoin("right");
+    await loadCoin("left");
+
+    await loadCoin("right");
+
+    document.getElementById("bottomLoading").innerText = "";
+
+    setInterval(() => {
+
+        document.getElementById("hkTime").innerText =
+            hkTime24h();
+
+    }, 1000);
 
 };
