@@ -1,514 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Monitor</title>
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
+<style>
+body{
+    background:#111;
+    color:#00ff99;
+    font-family:Arial;
+    text-align:center;
+    padding-top:50px;
+}
 
-<title>
-Crypto Monitor
-</title>
+.box{
+    background:#1b1b1b;
+    width:300px;
+    margin:auto;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 15px #00ff99;
+}
 
-<link
-rel="stylesheet"
-href="style.css"
-/>
-
+.price{
+    font-size:40px;
+    margin-top:20px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="main-container">
+<div class="box">
 
-<div class="main-title">
-DUAL COIN 1-3H AI PREDICTOR
-</div>
+<h1>BTCUSDT</h1>
 
-<div
-id="updateTime"
-class="update-time"
->
-
-<div class="hk-time-area">
-
-HK UPDATE TIME
-
-<div id="hkTime">
+<div class="price" id="price">
 Loading...
 </div>
 
 </div>
 
-</div>
+<script>
 
-<div class="coins-wrapper">
+async function loadPrice(){
 
-<!-- LEFT -->
+    const url =
+    "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
 
-<div class="coin-panel">
+    const response = await fetch(url);
 
-<div class="coin-title">
-LEFT COIN
-</div>
+    const data = await response.json();
 
-<div class="input-row">
+    document.getElementById("price").innerHTML =
+    parseFloat(data.price).toFixed(2);
 
-<input
-id="leftInput"
-class="coin-input"
-value="TON"
-/>
+}
 
-<button
-class="load-btn"
-onclick="loadCoin('left')"
->
-LOAD
-</button>
+loadPrice();
 
-</div>
+setInterval(loadPrice,5000);
 
-<div
-id="leftSymbol"
-class="coin-symbol"
->
-TON/USDT
-</div>
-
-<div
-id="leftPrice"
-class="coin-price"
->
-Loading...
-</div>
-
-<div class="prediction-title">
-1-3H AI PREDICTION:
-</div>
-
-<div
-id="leftPrediction"
-class="prediction-main"
->
-Loading...
-</div>
-
-<div class="prediction-grid-wrap">
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲1%
-</div>
-
-<div
-id="leftBoxes1"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲1.5%
-</div>
-
-<div
-id="leftBoxes15"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲2%
-</div>
-
-<div
-id="leftBoxes2"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼1%
-</div>
-
-<div
-id="leftDown1"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼1.5%
-</div>
-
-<div
-id="leftDown15"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼2%
-</div>
-
-<div
-id="leftDown2"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-</div>
-
-<div class="macro-grid">
-
-<div class="macro-card">
-<div class="macro-name">FEAR:</div>
-<div
-id="leftFear"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">DXY:</div>
-<div
-id="leftDxy"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">DOW:</div>
-<div
-id="leftDow"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">VIX:</div>
-<div
-id="leftVix"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">GOLD:</div>
-<div
-id="leftGold"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">US10Y:</div>
-<div
-id="leftUs10y"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">MARKET FEAR:</div>
-<div
-id="leftFearText"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">UPDATE:</div>
-<div
-id="leftUpdate"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- RIGHT -->
-
-<div class="coin-panel">
-
-<div class="coin-title">
-RIGHT COIN
-</div>
-
-<div class="input-row">
-
-<input
-id="rightInput"
-class="coin-input"
-value="BTC"
-/>
-
-<button
-class="load-btn"
-onclick="loadCoin('right')"
->
-LOAD
-</button>
-
-</div>
-
-<div
-id="rightSymbol"
-class="coin-symbol"
->
-BTC/USDT
-</div>
-
-<div
-id="rightPrice"
-class="coin-price"
->
-Loading...
-</div>
-
-<div class="prediction-title">
-1-3H AI PREDICTION:
-</div>
-
-<div
-id="rightPrediction"
-class="prediction-main"
->
-Loading...
-</div>
-
-<div class="prediction-grid-wrap">
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲1%
-</div>
-
-<div
-id="rightBoxes1"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲1.5%
-</div>
-
-<div
-id="rightBoxes15"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label green">
-▲2%
-</div>
-
-<div
-id="rightBoxes2"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼1%
-</div>
-
-<div
-id="rightDown1"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼1.5%
-</div>
-
-<div
-id="rightDown15"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-<div class="prediction-row">
-
-<div class="prediction-label red">
-▼2%
-</div>
-
-<div
-id="rightDown2"
-class="prediction-boxes"
->
-</div>
-
-</div>
-
-</div>
-
-<div class="macro-grid">
-
-<div class="macro-card">
-<div class="macro-name">FEAR:</div>
-<div
-id="rightFear"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">DXY:</div>
-<div
-id="rightDxy"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">DOW:</div>
-<div
-id="rightDow"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">VIX:</div>
-<div
-id="rightVix"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">GOLD:</div>
-<div
-id="rightGold"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">US10Y:</div>
-<div
-id="rightUs10y"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">MARKET FEAR:</div>
-<div
-id="rightFearText"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-<div class="macro-card">
-<div class="macro-name">UPDATE:</div>
-<div
-id="rightUpdate"
-class="macro-value"
->
-Loading...
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div
-id="bottomLoading"
-class="bottom-panel"
->
-Loading...
-</div>
-
-</div>
-
-<script src="script.js"></script>
+</script>
 
 </body>
-
 </html>
