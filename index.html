@@ -1,125 +1,239 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Monitor</title>
+<title>DUAL COIN 1-3H AI PREDICTOR</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<h1 class="main-title">DUAL COIN 1-3H AI PREDICTOR</h1>
+<div class="main-title">
+DUAL COIN 1-3H AI PREDICTOR
+</div>
 
 <div class="update-time" id="updateTime">
 HK UPDATE TIME
 </div>
 
-<div class="container">
+<div class="main-wrapper">
 
-<div class="coin-box">
+    <div class="coin-panel">
 
-<h2>LEFT COIN</h2>
+        <div class="panel-title">
+            LEFT COIN
+        </div>
 
-<div class="input-row">
-<input id="leftInput" value="TON">
-<button onclick="loadCoin('left')">LOAD</button>
+        <div class="input-row">
+            <input id="leftInput" value="NIGHT">
+            <button onclick="loadCoin('left')">LOAD</button>
+        </div>
+
+        <div class="symbol" id="leftSymbol">
+            NIGHTUSDT : 0.00000
+        </div>
+
+        <div class="matrix-box">
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲1%</div>
+
+                <div class="matrix-cell active-green"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲1.5%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲2%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼1%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼1.5%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼2%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+        </div>
+
+        <div class="prediction" id="leftPrediction">
+            1-3H Prediction：低勝算率
+        </div>
+
+        <div class="mini-info" id="leftInfo">
+SYMBOL: NIGHTUSDT
+
+PRICE: 0.03486
+
+5 MA: 0.0349
+15 MA: 0.0351
+30 MA: 0.0352
+        </div>
+
+    </div>
+
+    <div class="middle-separator">
+        ||||
+    </div>
+
+    <div class="coin-panel">
+
+        <div class="panel-title">
+            RIGHT COIN
+        </div>
+
+        <div class="input-row">
+            <input id="rightInput" value="BTC">
+            <button onclick="loadCoin('right')">LOAD</button>
+        </div>
+
+        <div class="symbol" id="rightSymbol">
+            BTCUSDT : 0.00000
+        </div>
+
+        <div class="matrix-box">
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲1%</div>
+
+                <div class="matrix-cell active-green"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲1.5%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label up">▲2%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼1%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼1.5%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+            <div class="matrix-row">
+                <div class="matrix-label down">▼2%</div>
+
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+                <div class="matrix-cell"></div>
+            </div>
+
+        </div>
+
+        <div class="prediction" id="rightPrediction">
+            1-3H Prediction：+0.03%
+        </div>
+
+        <div class="mini-info" id="rightInfo">
+SYMBOL: BTCUSDT
+
+PRICE: 73530.01
+
+5 MA: 73534.5760
+15 MA: 73435.9213
+30 MA: 73406.3973
+        </div>
+
+    </div>
+
 </div>
 
-<div id="leftContent">
+<div class="macro-box">
 
-<div class="symbol">TON/USDT</div>
+    <div class="macro-title">
+        BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
+    </div>
 
-<div class="price">0.00</div>
+    <div class="macro-score">
+        ◎ 宏觀方向：中性震盪 | SCORE: -1
+    </div>
 
-<div class="prediction-title">
-1-3H AI PREDICTION:
-</div>
+    <div class="macro-info">
+        DXY美元指數: 99.35 (+0.15%)
+    </div>
 
-<div class="prediction strong-bear">
-強烈看跌 ▼
-</div>
+    <div class="macro-info green">
+        道瓊斯指數: 50,644.28 (+0.36%)
+    </div>
 
-<div class="levels">
+    <div class="macro-info green">
+        美債10年期: 0.45% (-0.27%)
+    </div>
 
-<div>▲1%</div>
-<div>▲1.5%</div>
-<div>▲2%</div>
+    <div class="macro-info red">
+        恐慌指數(VIX): 16.68 (+2.39%)
+    </div>
 
-<div class="down">▼1%</div>
-<div class="down">▼1.5%</div>
-<div class="down">▼2%</div>
-
-</div>
-
-<div class="market-info">
-
-<div>FEAR:<br><span id="fear-left">0</span></div>
-<div>DXY:<br><span id="dxy-left">0</span></div>
-<div>DOW:<br><span id="dow-left">0</span></div>
-<div>VIX:<br><span id="vix-left">0</span></div>
-<div>GOLD:<br><span id="gold-left">0</span></div>
-<div>US10Y:<br><span id="us10-left">0</span></div>
-<div>MARKET FEAR:<br><span id="feartext-left">Loading</span></div>
-<div>UPDATE:<br><span id="update-left">--</span></div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="coin-box">
-
-<h2>RIGHT COIN</h2>
-
-<div class="input-row">
-<input id="rightInput" value="BTC">
-<button onclick="loadCoin('right')">LOAD</button>
-</div>
-
-<div id="rightContent">
-
-<div class="symbol">BTC/USDT</div>
-
-<div class="price">0.00</div>
-
-<div class="prediction-title">
-1-3H AI PREDICTION:
-</div>
-
-<div class="prediction light-bear">
-輕微看跌 ●
-</div>
-
-<div class="levels">
-
-<div>▲1%</div>
-<div>▲1.5%</div>
-<div>▲2%</div>
-
-<div class="down">▼1%</div>
-<div class="down">▼1.5%</div>
-<div class="down">▼2%</div>
-
-</div>
-
-<div class="market-info">
-
-<div>FEAR:<br><span id="fear-right">0</span></div>
-<div>DXY:<br><span id="dxy-right">0</span></div>
-<div>DOW:<br><span id="dow-right">0</span></div>
-<div>VIX:<br><span id="vix-right">0</span></div>
-<div>GOLD:<br><span id="gold-right">0</span></div>
-<div>US10Y:<br><span id="us10-right">0</span></div>
-<div>MARKET FEAR:<br><span id="feartext-right">Loading</span></div>
-<div>UPDATE:<br><span id="update-right">--</span></div>
-
-</div>
-
-</div>
-
-</div>
+    <div class="macro-info red">
+        黃金: 4423.10 (-1.30%)
+    </div>
 
 </div>
 
