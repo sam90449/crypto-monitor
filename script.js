@@ -219,6 +219,7 @@ ${data.updateTime}
 }
 
 loadMacro();
+
 setInterval(
     loadMacro,
     60000
