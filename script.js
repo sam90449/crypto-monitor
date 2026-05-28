@@ -1,404 +1,130 @@
-async function getCryptoData() {
+async function getPrice(symbol){
 
-    try {
+    try{
 
-        const response = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,the-open-network,solana,ripple,dogecoin,binancecoin,cardano,avalanche-2,chainlink&vs_currencies=usd",
-            {
-                cache: "no-store"
-            }
+        const res = await fetch(
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`
         );
 
-        return await response.json();
+        const data = await res.json();
 
-    } catch (e) {
+        return parseFloat(data.price).toFixed(2);
 
-        return null;
+    }catch(e){
 
+        return "LOAD ERROR";
+    }
+}
+
+function getPrediction(price){
+
+    price = parseFloat(price);
+
+    if(isNaN(price)){
+        return "LOAD ERROR";
     }
 
-}
-
-async function getMacroData() {
-
-    try {
-
-        const response = await fetch(
-            "/api/macro?t=" + Date.now(),
-            {
-                cache: "no-store"
-            }
-        );
-
-        return await response.json();
-
-    } catch (e) {
-
-        return null;
-
+    if(price > 50000){
+        return "輕微看跌 ●";
     }
 
+    if(price > 1000){
+        return "中性震盪 ●";
+    }
+
+    return "強烈看跌 ▼";
 }
 
-function setLoading(side) {
+async function loadCoin(side){
 
-    const priceId =
-        side === "left"
-            ? "leftPrice"
-            : "rightPrice";
-
-    document.getElementById(priceId).innerHTML =
-        "Loading...";
-
-}
-
-async function loadCoin(side) {
-
-    const inputId =
-        side === "left"
-            ? "leftInput"
-            : "rightInput";
-
-    const priceId =
-        side === "left"
-            ? "leftPrice"
-            : "rightPrice";
-
-    const predictionId =
-        side === "left"
-            ? "leftPrediction"
-            : "rightPrediction";
-
-    const boxesId =
-        side === "left"
-            ? "leftBoxes"
-            : "rightBoxes";
-
-    const infoId =
-        side === "left"
-            ? "leftInfo"
-            : "rightInfo";
+    const input =
+        document.getElementById(`${side}Input`);
 
     const symbol =
-        document
-            .getElementById(inputId)
-            .value
-            .trim()
-            .toUpperCase();
+        input.value.toUpperCase();
 
-    setLoading(side);
+    const content =
+        document.getElementById(`${side}Content`);
 
-    // =========================
-    // GET CRYPTO DATA
-    // =========================
+    content.querySelector(".symbol").innerText =
+        `${symbol}/USDT`;
 
-    const cryptoData =
-        await getCryptoData();
+    content.querySelector(".price").innerText =
+        "Loading...";
 
-    // =========================
-    // GET MACRO DATA
-    // =========================
+    const price = await getPrice(symbol);
 
-    const macroData =
-        await getMacroData();
+    content.querySelector(".price").innerText =
+        price;
 
-    if (!cryptoData || !macroData) {
+    const prediction =
+        getPrediction(price);
 
-        document.getElementById(priceId).innerHTML =
-            "API ERROR";
-
-        return;
+    content.querySelector(".prediction").innerText =
+        prediction;
 
-    }
+    const now = new Date();
 
-    // =========================
-    // MAP SYMBOL
-    // =========================
+    const hk = now.toLocaleString(
+        "en-US",
+        {
+            timeZone:"Asia/Hong_Kong"
+        }
+    );
 
-    let coinPrice = "UNSUPPORTED";
+    document.getElementById(
+        `update-${side}`
+    ).innerText = hk;
 
-    if (symbol === "BTC") {
+    document.getElementById(
+        `feartext-${side}`
+    ).innerText = "Extreme Fear";
 
-        coinPrice =
-            cryptoData?.bitcoin?.usd !== undefined
-                ? Number(
-                    cryptoData.bitcoin.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "ETH") {
+    document.getElementById(
+        `fear-${side}`
+    ).innerText = "22";
 
-        coinPrice =
-            cryptoData?.ethereum?.usd !== undefined
-                ? Number(
-                    cryptoData.ethereum.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "TON") {
-
-        coinPrice =
-            cryptoData?.["the-open-network"]?.usd !== undefined
-                ? Number(
-                    cryptoData["the-open-network"].usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "SOL") {
-
-        coinPrice =
-            cryptoData?.solana?.usd !== undefined
-                ? Number(
-                    cryptoData.solana.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "XRP") {
-
-        coinPrice =
-            cryptoData?.ripple?.usd !== undefined
-                ? Number(
-                    cryptoData.ripple.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "DOGE") {
-
-        coinPrice =
-            cryptoData?.dogecoin?.usd !== undefined
-                ? Number(
-                    cryptoData.dogecoin.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "BNB") {
-
-        coinPrice =
-            cryptoData?.binancecoin?.usd !== undefined
-                ? Number(
-                    cryptoData.binancecoin.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "ADA") {
-
-        coinPrice =
-            cryptoData?.cardano?.usd !== undefined
-                ? Number(
-                    cryptoData.cardano.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "AVAX") {
-
-        coinPrice =
-            cryptoData?.["avalanche-2"]?.usd !== undefined
-                ? Number(
-                    cryptoData["avalanche-2"].usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "LINK") {
-
-        coinPrice =
-            cryptoData?.chainlink?.usd !== undefined
-                ? Number(
-                    cryptoData.chainlink.usd
-                ).toFixed(2)
-                : "N/A";
-
-    }
-
-    // =========================
-    // PRICE
-    // =========================
-
-    document.getElementById(priceId).innerHTML = `
-        <div class="coin-symbol">
-            ${symbol}/USDT
-        </div>
-
-        <div class="coin-value">
-            ${coinPrice}
-        </div>
-    `;
-
-    // =========================
-    // PREDICTION
-    // =========================
-
-    document.getElementById(predictionId).innerHTML = `
-        <div class="prediction-title">
-            1-3H AI PREDICTION
-        </div>
-
-        <div class="prediction-status">
-            ${macroData.status}
-            ${macroData.icon}
-        </div>
-    `;
-
-    // =========================
-    // BOXES
-    // =========================
-
-    document.getElementById(boxesId).innerHTML = `
-        <div class="mini-box">
-            <div class="mini-title">
-                FEAR
-            </div>
-
-            <div class="mini-value">
-                ${macroData.fear}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
-                BTC DOM
-            </div>
-
-            <div class="mini-value">
-                ${macroData.btcDom}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
-                BTC CHANGE
-            </div>
-
-            <div class="mini-value">
-                ${macroData.btcChange}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
-                VOLUME
-            </div>
-
-            <div class="mini-value">
-                ${macroData.btcVolume}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
-                TOTAL CAP
-            </div>
-
-            <div class="mini-value">
-                ${macroData.totalCap}
-            </div>
-        </div>
-
-        <div class="mini-box">
-            <div class="mini-title">
-                UPDATE
-            </div>
-
-            <div class="mini-value">
-                ${macroData.updateTime}
-            </div>
-        </div>
-    `;
-
-    // =========================
-    // INFO
-    // =========================
-
-    document.getElementById(infoId).innerHTML = `
-        <div class="global-line">
-            FEAR:
-            ${macroData.fear}
-            (${macroData.fearText})
-        </div>
-
-        <div class="global-line">
-            BTC DOM:
-            ${macroData.btcDom}
-        </div>
-
-        <div class="global-line">
-            TOTAL CAP:
-            ${macroData.totalCap}
-        </div>
-
-        <div class="global-line">
-            BTC VOL:
-            ${macroData.btcVolume}
-        </div>
-    `;
-
-    // =========================
-    // UPDATE TIME
-    // =========================
-
-    document.getElementById("updateTime").innerHTML =
-        "HK UPDATE TIME: " +
-        macroData.updateTime;
-
-    // =========================
-    // MACRO AREA
-    // =========================
-
-    document.getElementById("macroArea").innerHTML = `
-
-        <div class="macro-title">
-            GLOBAL MACRO DATA
-        </div>
-
-        <div class="macro-content">
-
-            <div class="global-line">
-                DXY:
-                ${macroData.dxy}
-                (${macroData.dxyChange})
-            </div>
-
-            <div class="global-line">
-                DOW:
-                ${macroData.dow}
-                (${macroData.dowChange})
-            </div>
-
-            <div class="global-line">
-                VIX:
-                ${macroData.vix}
-                (${macroData.vixChange})
-            </div>
-
-            <div class="global-line">
-                GOLD:
-                ${macroData.gold}
-                (${macroData.goldChange})
-            </div>
-
-            <div class="global-line">
-                US10Y:
-                ${macroData.us10y}
-                (${macroData.us10yChange})
-            </div>
-
-        </div>
-
-    `;
+    document.getElementById(
+        `dxy-${side}`
+    ).innerText = "99.33";
 
+    document.getElementById(
+        `dow-${side}`
+    ).innerText = "50644.28";
+
+    document.getElementById(
+        `vix-${side}`
+    ).innerText = "16.72";
+
+    document.getElementById(
+        `gold-${side}`
+    ).innerText = "4419.80";
+
+    document.getElementById(
+        `us10-${side}`
+    ).innerText = "0.45";
 }
 
-window.onload = function () {
+function updateMainTime(){
 
-    loadCoin("left");
+    const now = new Date();
 
-    loadCoin("right");
+    const hk = now.toLocaleString(
+        "en-US",
+        {
+            timeZone:"Asia/Hong_Kong"
+        }
+    );
 
-    setInterval(function () {
+    document.getElementById(
+        "updateTime"
+    ).innerText =
+        `HK UPDATE TIME\n${hk}`;
+}
 
-        loadCoin("left");
+setInterval(updateMainTime,1000);
 
-        loadCoin("right");
+updateMainTime();
 
-    }, 30000);
-
-};
+loadCoin("left");
+loadCoin("right");
