@@ -4,6 +4,8 @@ body{
     color:#00ffff;
     font-family:Arial;
     overflow-x:hidden;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
 }
 
 .main-title{
@@ -55,7 +57,7 @@ body{
 }
 
 #loadBtn:hover{
-    opacity:0.9;
+    opacity:0.92;
 }
 
 .charts-wrapper{
