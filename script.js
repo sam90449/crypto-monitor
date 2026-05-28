@@ -1,31 +1,10 @@
-async function getCryptoPrice(symbol) {
-
-    const map = {
-
-        BTC: "bitcoin",
-        ETH: "ethereum",
-        TON: "the-open-network",
-        SOL: "solana",
-        XRP: "ripple",
-        DOGE: "dogecoin",
-        BNB: "binancecoin",
-        ADA: "cardano",
-        AVAX: "avalanche-2",
-        LINK: "chainlink"
-
-    };
-
-    if (!map[symbol]) {
-
-        return "UNSUPPORTED";
-
-    }
+async function getBinancePrice(symbol) {
 
     try {
 
         const response = await fetch(
 
-            `https://api.coingecko.com/api/v3/simple/price?ids=${map[symbol]}&vs_currencies=usd`,
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`,
 
             {
                 cache: "no-store"
@@ -35,15 +14,13 @@ async function getCryptoPrice(symbol) {
 
         const data = await response.json();
 
-        const coinId = map[symbol];
+        if (!data.price) {
 
-        const price = data?.[coinId]?.usd;
-
-        if (price === undefined) {
-
-            return "N/A";
+            return "UNSUPPORTED";
 
         }
+
+        const price = Number(data.price);
 
         if (
             symbol === "XRP" ||
@@ -51,11 +28,11 @@ async function getCryptoPrice(symbol) {
             symbol === "ADA"
         ) {
 
-            return Number(price).toFixed(4);
+            return price.toFixed(4);
 
         }
 
-        return Number(price).toFixed(2);
+        return price.toFixed(2);
 
     } catch (e) {
 
@@ -123,19 +100,23 @@ async function loadCoin(side) {
     document.getElementById(priceId).innerHTML =
         "Loading...";
 
-    // =========================
-    // SEPARATE FETCH
-    // =========================
+    // =========================================
+    // BINANCE PRICE
+    // =========================================
 
     const coinPrice =
-        await getCryptoPrice(symbol);
+        await getBinancePrice(symbol);
+
+    // =========================================
+    // MACRO DATA
+    // =========================================
 
     const macroData =
         await getMacroData();
 
-    // =========================
+    // =========================================
     // PRICE
-    // =========================
+    // =========================================
 
     document.getElementById(priceId).innerHTML = `
         <div class="coin-symbol">
@@ -147,9 +128,9 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
+    // =========================================
     // PREDICTION
-    // =========================
+    // =========================================
 
     document.getElementById(predictionId).innerHTML = `
         <div class="prediction-title">
@@ -162,9 +143,9 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
+    // =========================================
     // BOXES
-    // =========================
+    // =========================================
 
     document.getElementById(boxesId).innerHTML = `
         <div class="mini-box">
@@ -228,9 +209,9 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
+    // =========================================
     // INFO
-    // =========================
+    // =========================================
 
     document.getElementById(infoId).innerHTML = `
         <div class="global-line">
@@ -255,17 +236,17 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
+    // =========================================
     // UPDATE TIME
-    // =========================
+    // =========================================
 
     document.getElementById("updateTime").innerHTML =
         "HK UPDATE TIME: " +
         (macroData.updateTime || "N/A");
 
-    // =========================
+    // =========================================
     // MACRO AREA
-    // =========================
+    // =========================================
 
     document.getElementById("macroArea").innerHTML = `
 
