@@ -236,7 +236,9 @@ function initCharts() {
 
     new TradingView.widget({
 
-        autosize: true,
+        width: "100%",
+
+        height: 760,
 
         symbol: "BINANCE:BTCUSDT",
 
@@ -254,11 +256,13 @@ function initCharts() {
 
         enable_publishing: false,
 
-        hide_top_toolbar: false,
+        hide_side_toolbar: true,
 
-        hide_legend: false,
+        allow_symbol_change: false,
 
         save_image: false,
+
+        withdateranges: false,
 
         studies: [
             "MASimple@tv-basicstudies"
@@ -269,9 +273,11 @@ function initCharts() {
 
     new TradingView.widget({
 
-        autosize: true,
+        width: "100%",
 
-        symbol: "TVC:DXY",
+        height: 760,
+
+        symbol: "INDEX:DXY",
 
         interval: "1M",
 
@@ -287,11 +293,13 @@ function initCharts() {
 
         enable_publishing: false,
 
-        hide_top_toolbar: false,
+        hide_side_toolbar: true,
 
-        hide_legend: false,
+        allow_symbol_change: false,
 
         save_image: false,
+
+        withdateranges: false,
 
         studies: [],
 
