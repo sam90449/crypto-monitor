@@ -1,3 +1,44 @@
+async function yahooFetch(symbol) {
+
+    try {
+
+        const response = await fetch(
+            `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`,
+            {
+                headers: {
+                    "accept": "application/json",
+                    "user-agent": "Mozilla/5.0"
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        const result =
+            data.chart.result[0].meta;
+
+        const price =
+            result.regularMarketPrice;
+
+        const prev =
+            result.previousClose;
+
+        const change =
+            ((price - prev) / prev) * 100;
+
+        return {
+            price,
+            change
+        };
+
+    } catch (e) {
+
+        return null;
+
+    }
+
+}
+
 export async function onRequestGet() {
 
     const coins = {};
@@ -9,15 +50,14 @@ export async function onRequestGet() {
     let fear = "N/A";
     let fearText = "N/A";
 
-    let altcoinIndex = "N/A";
-    let usdtDom = "N/A";
-
     let status = "中性震盪";
     let icon = "🟣";
 
-    try {
+    // =========================================
+    // COINS
+    // =========================================
 
-        // MULTI COINS
+    try {
 
         const coinResponse = await fetch(
             "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,the-open-network,solana,ripple,dogecoin,binancecoin,cardano,avalanche-2,chainlink&vs_currencies=usd&include_24hr_change=true",
@@ -29,16 +69,21 @@ export async function onRequestGet() {
             }
         );
 
-        const coinJson = await coinResponse.json();
+        const coinJson =
+            await coinResponse.json();
 
         coins.BTC =
             coinJson?.bitcoin?.usd !== undefined
-                ? Number(coinJson.bitcoin.usd).toFixed(2)
+                ? Number(
+                    coinJson.bitcoin.usd
+                ).toFixed(2)
                 : "N/A";
 
         coins.ETH =
             coinJson?.ethereum?.usd !== undefined
-                ? Number(coinJson.ethereum.usd).toFixed(2)
+                ? Number(
+                    coinJson.ethereum.usd
+                ).toFixed(2)
                 : "N/A";
 
         coins.TON =
@@ -50,27 +95,37 @@ export async function onRequestGet() {
 
         coins.SOL =
             coinJson?.solana?.usd !== undefined
-                ? Number(coinJson.solana.usd).toFixed(2)
+                ? Number(
+                    coinJson.solana.usd
+                ).toFixed(2)
                 : "N/A";
 
         coins.XRP =
             coinJson?.ripple?.usd !== undefined
-                ? Number(coinJson.ripple.usd).toFixed(4)
+                ? Number(
+                    coinJson.ripple.usd
+                ).toFixed(4)
                 : "N/A";
 
         coins.DOGE =
             coinJson?.dogecoin?.usd !== undefined
-                ? Number(coinJson.dogecoin.usd).toFixed(4)
+                ? Number(
+                    coinJson.dogecoin.usd
+                ).toFixed(4)
                 : "N/A";
 
         coins.BNB =
             coinJson?.binancecoin?.usd !== undefined
-                ? Number(coinJson.binancecoin.usd).toFixed(2)
+                ? Number(
+                    coinJson.binancecoin.usd
+                ).toFixed(2)
                 : "N/A";
 
         coins.ADA =
             coinJson?.cardano?.usd !== undefined
-                ? Number(coinJson.cardano.usd).toFixed(4)
+                ? Number(
+                    coinJson.cardano.usd
+                ).toFixed(4)
                 : "N/A";
 
         coins.AVAX =
@@ -82,7 +137,9 @@ export async function onRequestGet() {
 
         coins.LINK =
             coinJson?.chainlink?.usd !== undefined
-                ? Number(coinJson.chainlink.usd).toFixed(2)
+                ? Number(
+                    coinJson.chainlink.usd
+                ).toFixed(2)
                 : "N/A";
 
         const btcChangeRaw =
@@ -122,9 +179,11 @@ export async function onRequestGet() {
 
     }
 
-    try {
+    // =========================================
+    // GLOBAL
+    // =========================================
 
-        // GLOBAL DATA
+    try {
 
         const globalResponse = await fetch(
             "https://api.coingecko.com/api/v3/global",
@@ -136,45 +195,29 @@ export async function onRequestGet() {
             }
         );
 
-        const globalJson = await globalResponse.json();
+        const globalJson =
+            await globalResponse.json();
 
         if (globalJson && globalJson.data) {
 
             totalCap =
-                Number(
-                    globalJson.data.total_market_cap.usd
-                ) > 0
-                    ? (
-                        Number(
-                            globalJson.data.total_market_cap.usd
-                        ) / 1000000000000
-                    ).toFixed(2) + "T"
-                    : "N/A";
+                (
+                    Number(
+                        globalJson.data.total_market_cap.usd
+                    ) / 1000000000000
+                ).toFixed(2) + "T";
 
             btcDom =
-                globalJson.data.market_cap_percentage?.btc !== undefined
-                    ? Number(
-                        globalJson.data.market_cap_percentage.btc
-                    ).toFixed(2) + "%"
-                    : "N/A";
+                Number(
+                    globalJson.data.market_cap_percentage.btc
+                ).toFixed(2) + "%";
 
             btcVolume =
-                Number(
-                    globalJson.data.total_volume.usd
-                ) > 0
-                    ? (
-                        Number(
-                            globalJson.data.total_volume.usd
-                        ) / 1000000000
-                    ).toFixed(2) + "B"
-                    : "N/A";
-
-            usdtDom =
-                globalJson.data.market_cap_percentage?.usdt !== undefined
-                    ? Number(
-                        globalJson.data.market_cap_percentage.usdt
-                    ).toFixed(2) + "%"
-                    : "N/A";
+                (
+                    Number(
+                        globalJson.data.total_volume.usd
+                    ) / 1000000000
+                ).toFixed(2) + "B";
 
         }
 
@@ -183,13 +226,14 @@ export async function onRequestGet() {
         totalCap = "N/A";
         btcDom = "N/A";
         btcVolume = "N/A";
-        usdtDom = "N/A";
 
     }
 
-    try {
+    // =========================================
+    // FEAR
+    // =========================================
 
-        // FEAR INDEX
+    try {
 
         const fearResponse = await fetch(
             "https://api.alternative.me/fng/",
@@ -201,7 +245,8 @@ export async function onRequestGet() {
             }
         );
 
-        const fearJson = await fearResponse.json();
+        const fearJson =
+            await fearResponse.json();
 
         fear =
             fearJson?.data?.[0]?.value || "N/A";
@@ -216,25 +261,28 @@ export async function onRequestGet() {
 
     }
 
-    try {
+    // =========================================
+    // YAHOO MACRO
+    // =========================================
 
-        // ALTCOIN INDEX
+    const dxy =
+        await yahooFetch("DX-Y.NYB");
 
-        altcoinIndex =
-            btcDom !== "N/A"
-                ? (
-                    100 -
-                    parseFloat(
-                        btcDom.replace("%", "")
-                    )
-                ).toFixed(2)
-                : "N/A";
+    const dow =
+        await yahooFetch("%5EDJI");
 
-    } catch (e) {
+    const vix =
+        await yahooFetch("%5EVIX");
 
-        altcoinIndex = "N/A";
+    const gold =
+        await yahooFetch("GC=F");
 
-    }
+    const us10y =
+        await yahooFetch("%5ETNX");
+
+    // =========================================
+    // FINAL
+    // =========================================
 
     const updateTime =
         new Date().toLocaleString(
@@ -259,19 +307,67 @@ export async function onRequestGet() {
 
             btcDom,
 
-            usdtDom,
-
             fear,
 
             fearText,
-
-            altcoinIndex,
 
             status,
 
             icon,
 
-            updateTime
+            updateTime,
+
+            dxy:
+                dxy
+                    ? dxy.price.toFixed(2)
+                    : "N/A",
+
+            dxyChange:
+                dxy
+                    ? dxy.change.toFixed(2) + "%"
+                    : "N/A",
+
+            dow:
+                dow
+                    ? dow.price.toFixed(2)
+                    : "N/A",
+
+            dowChange:
+                dow
+                    ? dow.change.toFixed(2) + "%"
+                    : "N/A",
+
+            vix:
+                vix
+                    ? vix.price.toFixed(2)
+                    : "N/A",
+
+            vixChange:
+                vix
+                    ? vix.change.toFixed(2) + "%"
+                    : "N/A",
+
+            gold:
+                gold
+                    ? gold.price.toFixed(2)
+                    : "N/A",
+
+            goldChange:
+                gold
+                    ? gold.change.toFixed(2) + "%"
+                    : "N/A",
+
+            us10y:
+                us10y
+                    ? (
+                        us10y.price / 10
+                    ).toFixed(2)
+                    : "N/A",
+
+            us10yChange:
+                us10y
+                    ? us10y.change.toFixed(2) + "%"
+                    : "N/A"
 
         }),
 
