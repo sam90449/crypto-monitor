@@ -3,25 +3,22 @@ async function getBinancePrice(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`,
-            {
-                cache: "no-store"
-            }
+            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`
         );
 
         const data = await response.json();
 
-        if (!data.lastPrice) {
+        if (!data || !data.lastPrice) {
             return null;
         }
 
         return {
             price: Number(data.lastPrice),
-            changePercent: Number(data.priceChangePercent),
-            volume: Number(data.quoteVolume)
+            changePercent: Number(data.priceChangePercent || 0),
+            volume: Number(data.quoteVolume || 0)
         };
 
-    } catch (e) {
+    } catch (err) {
 
         return null;
 
@@ -34,20 +31,21 @@ async function getKlines(symbol, interval = "15m", limit = 48) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`,
-            {
-                cache: "no-store"
-            }
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`
         );
 
         const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            return [];
+        }
 
         return data.map(k => ({
             close: Number(k[4]),
             volume: Number(k[5])
         }));
 
-    } catch (e) {
+    } catch (err) {
 
         return [];
 
@@ -57,7 +55,7 @@ async function getKlines(symbol, interval = "15m", limit = 48) {
 
 function calculateMA(data, period) {
 
-    if (data.length < period) {
+    if (!data || data.length < period) {
         return 0;
     }
 
@@ -73,19 +71,20 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
 
     let score = 0;
 
-    if (price > ma5) score += 1;
-    else score -= 1;
+    if (price > ma5) score++;
+    else score--;
 
-    if (price > ma15) score += 1;
-    else score -= 1;
+    if (price > ma15) score++;
+    else score--;
 
-    if (price > ma30) score += 1;
-    else score -= 1;
+    if (price > ma30) score++;
+    else score--;
 
-    if (changePercent > 1) score += 1;
-    if (changePercent < -1) score -= 1;
+    if (changePercent > 1) score++;
+    if (changePercent < -1) score--;
 
     if (score >= 4) {
+
         return {
             text: "強烈看漲 🚀",
             color: "#00ff95",
@@ -96,9 +95,11 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
             down15: 0,
             down2: 0
         };
+
     }
 
     if (score >= 2) {
+
         return {
             text: "偏向上升 📈",
             color: "#00e5ff",
@@ -109,9 +110,11 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
             down15: 0,
             down2: 0
         };
+
     }
 
     if (score <= -4) {
+
         return {
             text: "強烈看跌 📉",
             color: "#ff4d4f",
@@ -122,9 +125,11 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
             down15: 4,
             down2: 3
         };
+
     }
 
     if (score <= -2) {
+
         return {
             text: "偏向下跌 ⚠️",
             color: "#ff7a7a",
@@ -135,6 +140,7 @@ function calculatePrediction(price, ma5, ma15, ma30, changePercent) {
             down15: 2,
             down2: 2
         };
+
     }
 
     return {
@@ -160,7 +166,7 @@ async function getMacroData() {
 
         return data;
 
-    } catch (e) {
+    } catch (err) {
 
         return {
             fear: "N/A",
@@ -199,93 +205,112 @@ function renderBoxes(count, type) {
 
 }
 
-function hkTime24h() {
+function hkTime24() {
 
-    const now = new Date();
-
-    return now.toLocaleString("en-GB", {
-        timeZone: "Asia/Hong_Kong",
-        hour12: false
-    });
+    return new Date().toLocaleString(
+        "en-GB",
+        {
+            timeZone: "Asia/Hong_Kong",
+            hour12: false
+        }
+    );
 
 }
 
 async function loadCoin(side) {
 
-    const inputId = side === "left"
-        ? "leftInput"
-        : "rightInput";
+    const symbolInputId =
+        side === "left"
+            ? "leftInput"
+            : "rightInput";
 
-    const symbolId = side === "left"
-        ? "leftSymbol"
-        : "rightSymbol";
+    const symbolTextId =
+        side === "left"
+            ? "leftSymbol"
+            : "rightSymbol";
 
-    const priceId = side === "left"
-        ? "leftPrice"
-        : "rightPrice";
+    const priceId =
+        side === "left"
+            ? "leftPrice"
+            : "rightPrice";
 
-    const predictionId = side === "left"
-        ? "leftPrediction"
-        : "rightPrediction";
+    const predictionId =
+        side === "left"
+            ? "leftPrediction"
+            : "rightPrediction";
 
-    const boxes1Id = side === "left"
-        ? "leftBoxes1"
-        : "rightBoxes1";
+    const up1Id =
+        side === "left"
+            ? "leftBoxes1"
+            : "rightBoxes1";
 
-    const boxes15Id = side === "left"
-        ? "leftBoxes15"
-        : "rightBoxes15";
+    const up15Id =
+        side === "left"
+            ? "leftBoxes15"
+            : "rightBoxes15";
 
-    const boxes2Id = side === "left"
-        ? "leftBoxes2"
-        : "rightBoxes2";
+    const up2Id =
+        side === "left"
+            ? "leftBoxes2"
+            : "rightBoxes2";
 
-    const down1Id = side === "left"
-        ? "leftDown1"
-        : "rightDown1";
+    const down1Id =
+        side === "left"
+            ? "leftDown1"
+            : "rightDown1";
 
-    const down15Id = side === "left"
-        ? "leftDown15"
-        : "rightDown15";
+    const down15Id =
+        side === "left"
+            ? "leftDown15"
+            : "rightDown15";
 
-    const down2Id = side === "left"
-        ? "leftDown2"
-        : "rightDown2";
+    const down2Id =
+        side === "left"
+            ? "leftDown2"
+            : "rightDown2";
 
-    const macroFearId = side === "left"
-        ? "leftFear"
-        : "rightFear";
+    const fearId =
+        side === "left"
+            ? "leftFear"
+            : "rightFear";
 
-    const macroDxyId = side === "left"
-        ? "leftDxy"
-        : "rightDxy";
+    const dxyId =
+        side === "left"
+            ? "leftDxy"
+            : "rightDxy";
 
-    const macroDowId = side === "left"
-        ? "leftDow"
-        : "rightDow";
+    const dowId =
+        side === "left"
+            ? "leftDow"
+            : "rightDow";
 
-    const macroVixId = side === "left"
-        ? "leftVix"
-        : "rightVix";
+    const vixId =
+        side === "left"
+            ? "leftVix"
+            : "rightVix";
 
-    const macroGoldId = side === "left"
-        ? "leftGold"
-        : "rightGold";
+    const goldId =
+        side === "left"
+            ? "leftGold"
+            : "rightGold";
 
-    const macroUs10yId = side === "left"
-        ? "leftUs10y"
-        : "rightUs10y";
+    const us10yId =
+        side === "left"
+            ? "leftUs10y"
+            : "rightUs10y";
 
-    const macroFearTextId = side === "left"
-        ? "leftFearText"
-        : "rightFearText";
+    const fearTextId =
+        side === "left"
+            ? "leftFearText"
+            : "rightFearText";
 
-    const macroUpdateId = side === "left"
-        ? "leftUpdate"
-        : "rightUpdate";
+    const updateId =
+        side === "left"
+            ? "leftUpdate"
+            : "rightUpdate";
 
     const symbol = document
-        .getElementById(inputId)
+        .getElementById(symbolInputId)
         .value
         .trim()
         .toUpperCase();
@@ -294,31 +319,38 @@ async function loadCoin(side) {
         return;
     }
 
-    document.getElementById(symbolId).innerText = `${symbol}/USDT`;
+    document.getElementById(symbolTextId).innerText =
+        `${symbol}/USDT`;
 
-    document.getElementById(priceId).innerText = "Loading...";
+    document.getElementById(priceId).innerText =
+        "Loading...";
+
+    document.getElementById(predictionId).innerText =
+        "Loading...";
 
     const ticker = await getBinancePrice(symbol);
 
     if (!ticker) {
 
-        document.getElementById(priceId).innerText = "UNSUPPORTED";
+        document.getElementById(priceId).innerText =
+            "UNSUPPORTED";
+
+        document.getElementById(predictionId).innerText =
+            "API ERROR";
 
         return;
 
     }
 
     document.getElementById(priceId).innerText =
-        ticker.price.toFixed(
-            ticker.price >= 1000 ? 2 : 4
-        );
+        ticker.price >= 1000
+            ? ticker.price.toFixed(2)
+            : ticker.price.toFixed(4);
 
     const klines = await getKlines(symbol);
 
     const ma5 = calculateMA(klines, 5);
-
     const ma15 = calculateMA(klines, 15);
-
     const ma30 = calculateMA(klines, 30);
 
     const prediction = calculatePrediction(
@@ -329,19 +361,22 @@ async function loadCoin(side) {
         ticker.changePercent
     );
 
-    const predictionEl = document.getElementById(predictionId);
+    const predictionEl =
+        document.getElementById(predictionId);
 
-    predictionEl.innerText = prediction.text;
+    predictionEl.innerText =
+        prediction.text;
 
-    predictionEl.style.color = prediction.color;
+    predictionEl.style.color =
+        prediction.color;
 
-    document.getElementById(boxes1Id).innerHTML =
+    document.getElementById(up1Id).innerHTML =
         renderBoxes(prediction.up1, "green");
 
-    document.getElementById(boxes15Id).innerHTML =
+    document.getElementById(up15Id).innerHTML =
         renderBoxes(prediction.up15, "green");
 
-    document.getElementById(boxes2Id).innerHTML =
+    document.getElementById(up2Id).innerHTML =
         renderBoxes(prediction.up2, "green");
 
     document.getElementById(down1Id).innerHTML =
@@ -355,32 +390,52 @@ async function loadCoin(side) {
 
     const macro = await getMacroData();
 
-    document.getElementById(macroFearId).innerText = macro.fear;
-    document.getElementById(macroDxyId).innerText = macro.dxy;
-    document.getElementById(macroDowId).innerText = macro.dow;
-    document.getElementById(macroVixId).innerText = macro.vix;
-    document.getElementById(macroGoldId).innerText = macro.gold;
-    document.getElementById(macroUs10yId).innerText = macro.us10y;
-    document.getElementById(macroFearTextId).innerText = macro.fearText;
-    document.getElementById(macroUpdateId).innerText = hkTime24h();
+    document.getElementById(fearId).innerText =
+        macro.fear || "N/A";
+
+    document.getElementById(dxyId).innerText =
+        macro.dxy || "N/A";
+
+    document.getElementById(dowId).innerText =
+        macro.dow || "N/A";
+
+    document.getElementById(vixId).innerText =
+        macro.vix || "N/A";
+
+    document.getElementById(goldId).innerText =
+        macro.gold || "N/A";
+
+    document.getElementById(us10yId).innerText =
+        macro.us10y || "N/A";
+
+    document.getElementById(fearTextId).innerText =
+        macro.fearText || "N/A";
+
+    document.getElementById(updateId).innerText =
+        hkTime24();
 
 }
 
 window.onload = async function () {
 
     document.getElementById("hkTime").innerText =
-        hkTime24h();
+        hkTime24();
 
     await loadCoin("left");
 
     await loadCoin("right");
 
-    document.getElementById("bottomLoading").innerText = "";
+    const bottomLoading =
+        document.getElementById("bottomLoading");
+
+    if (bottomLoading) {
+        bottomLoading.innerText = "";
+    }
 
     setInterval(() => {
 
         document.getElementById("hkTime").innerText =
-            hkTime24h();
+            hkTime24();
 
     }, 1000);
 
