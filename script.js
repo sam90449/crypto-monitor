@@ -169,11 +169,6 @@ async function loadData() {
             })} USDT (${btcChange.toFixed(2)}%)`
         );
 
-        safeSetText(
-            "btcVolume",
-            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`
-        );
-
         safeSetHTML(
             "macroText",
             `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`
@@ -187,38 +182,8 @@ async function loadData() {
         }
 
         safeSetText(
-            "dxy",
-            `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${globalData.dxy.change.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "dow",
-            `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${globalData.dow.change.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "us10y",
-            `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${globalData.us10y.change.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "vix",
-            `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${globalData.vix.change.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "gold",
-            `黃金: ${globalData.gold.value.toFixed(2)} (${globalData.gold.change.toFixed(2)}%)`
-        );
-
-        safeSetText(
-            "fear",
-            `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`
-        );
-
-        safeSetText(
-            "updateTime",
-            `最後更新: ${globalData.updateTime || ""}`
+            "btcVolume",
+            `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`
         );
 
     } catch (e) {
@@ -279,7 +244,7 @@ function initCharts() {
 
         theme: "dark",
 
-        style: "1",
+        style: "3",
 
         locale: "zh_TW",
 
@@ -293,9 +258,7 @@ function initCharts() {
 
         save_image: false,
 
-        studies: [
-            "MASimple@tv-basicstudies"
-        ],
+        studies: [],
 
         container_id: "dxy_chart"
     });
