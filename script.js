@@ -5,9 +5,18 @@ async function getCryptoData() {
         const response = await fetch(
             "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,the-open-network,solana,ripple,dogecoin,binancecoin,cardano,avalanche-2,chainlink&vs_currencies=usd",
             {
+                headers: {
+                    "accept": "application/json"
+                },
                 cache: "no-store"
             }
         );
+
+        if (!response.ok) {
+
+            return null;
+
+        }
 
         return await response.json();
 
@@ -30,6 +39,12 @@ async function getMacroData() {
             }
         );
 
+        if (!response.ok) {
+
+            return null;
+
+        }
+
         return await response.json();
 
     } catch (e) {
@@ -49,6 +64,66 @@ function setLoading(side) {
 
     document.getElementById(priceId).innerHTML =
         "Loading...";
+
+}
+
+function getCoinPrice(symbol, cryptoData) {
+
+    const map = {
+
+        BTC:
+            cryptoData?.bitcoin?.usd,
+
+        ETH:
+            cryptoData?.ethereum?.usd,
+
+        TON:
+            cryptoData?.["the-open-network"]?.usd,
+
+        SOL:
+            cryptoData?.solana?.usd,
+
+        XRP:
+            cryptoData?.ripple?.usd,
+
+        DOGE:
+            cryptoData?.dogecoin?.usd,
+
+        BNB:
+            cryptoData?.binancecoin?.usd,
+
+        ADA:
+            cryptoData?.cardano?.usd,
+
+        AVAX:
+            cryptoData?.["avalanche-2"]?.usd,
+
+        LINK:
+            cryptoData?.chainlink?.usd
+
+    };
+
+    if (map[symbol] === undefined) {
+
+        return "UNSUPPORTED";
+
+    }
+
+    if (
+        symbol === "XRP" ||
+        symbol === "DOGE" ||
+        symbol === "ADA"
+    ) {
+
+        return Number(
+            map[symbol]
+        ).toFixed(4);
+
+    }
+
+    return Number(
+        map[symbol]
+    ).toFixed(2);
 
 }
 
@@ -88,130 +163,39 @@ async function loadCoin(side) {
 
     setLoading(side);
 
-    // =========================
-    // GET CRYPTO DATA
-    // =========================
+    const [
+        cryptoData,
+        macroData
+    ] = await Promise.all([
 
-    const cryptoData =
-        await getCryptoData();
+        getCryptoData(),
+        getMacroData()
 
-    // =========================
-    // GET MACRO DATA
-    // =========================
+    ]);
 
-    const macroData =
-        await getMacroData();
-
-    if (!cryptoData || !macroData) {
+    if (!cryptoData) {
 
         document.getElementById(priceId).innerHTML =
-            "API ERROR";
+            "CRYPTO API ERROR";
 
         return;
 
     }
 
-    // =========================
-    // MAP SYMBOL
-    // =========================
+    if (!macroData) {
 
-    let coinPrice = "UNSUPPORTED";
+        document.getElementById(priceId).innerHTML =
+            "MACRO API ERROR";
 
-    if (symbol === "BTC") {
-
-        coinPrice =
-            cryptoData?.bitcoin?.usd !== undefined
-                ? Number(
-                    cryptoData.bitcoin.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "ETH") {
-
-        coinPrice =
-            cryptoData?.ethereum?.usd !== undefined
-                ? Number(
-                    cryptoData.ethereum.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "TON") {
-
-        coinPrice =
-            cryptoData?.["the-open-network"]?.usd !== undefined
-                ? Number(
-                    cryptoData["the-open-network"].usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "SOL") {
-
-        coinPrice =
-            cryptoData?.solana?.usd !== undefined
-                ? Number(
-                    cryptoData.solana.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "XRP") {
-
-        coinPrice =
-            cryptoData?.ripple?.usd !== undefined
-                ? Number(
-                    cryptoData.ripple.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "DOGE") {
-
-        coinPrice =
-            cryptoData?.dogecoin?.usd !== undefined
-                ? Number(
-                    cryptoData.dogecoin.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "BNB") {
-
-        coinPrice =
-            cryptoData?.binancecoin?.usd !== undefined
-                ? Number(
-                    cryptoData.binancecoin.usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "ADA") {
-
-        coinPrice =
-            cryptoData?.cardano?.usd !== undefined
-                ? Number(
-                    cryptoData.cardano.usd
-                ).toFixed(4)
-                : "N/A";
-
-    } else if (symbol === "AVAX") {
-
-        coinPrice =
-            cryptoData?.["avalanche-2"]?.usd !== undefined
-                ? Number(
-                    cryptoData["avalanche-2"].usd
-                ).toFixed(2)
-                : "N/A";
-
-    } else if (symbol === "LINK") {
-
-        coinPrice =
-            cryptoData?.chainlink?.usd !== undefined
-                ? Number(
-                    cryptoData.chainlink.usd
-                ).toFixed(2)
-                : "N/A";
+        return;
 
     }
 
-    // =========================
-    // PRICE
-    // =========================
+    const coinPrice =
+        getCoinPrice(
+            symbol,
+            cryptoData
+        );
 
     document.getElementById(priceId).innerHTML = `
         <div class="coin-symbol">
@@ -223,10 +207,6 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
-    // PREDICTION
-    // =========================
-
     document.getElementById(predictionId).innerHTML = `
         <div class="prediction-title">
             1-3H AI PREDICTION
@@ -237,10 +217,6 @@ async function loadCoin(side) {
             ${macroData.icon}
         </div>
     `;
-
-    // =========================
-    // BOXES
-    // =========================
 
     document.getElementById(boxesId).innerHTML = `
         <div class="mini-box">
@@ -304,10 +280,6 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
-    // INFO
-    // =========================
-
     document.getElementById(infoId).innerHTML = `
         <div class="global-line">
             FEAR:
@@ -331,17 +303,9 @@ async function loadCoin(side) {
         </div>
     `;
 
-    // =========================
-    // UPDATE TIME
-    // =========================
-
     document.getElementById("updateTime").innerHTML =
         "HK UPDATE TIME: " +
         macroData.updateTime;
-
-    // =========================
-    // MACRO AREA
-    // =========================
 
     document.getElementById("macroArea").innerHTML = `
 
