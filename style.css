@@ -1,111 +1,178 @@
-body{
-    background:#000;
-    color:#fff;
-    font-family:Arial;
-    margin:0;
-    padding:0;
-}
+<!DOCTYPE html>
+<html lang="en">
 
-.main-title{
-    text-align:center;
-    font-size:32px;
-    font-weight:bold;
-    margin-top:20px;
-    color:white;
-}
+<head>
 
-.update-time{
-    text-align:center;
-    color:yellow;
-    font-size:18px;
-    margin-top:10px;
-}
+    <meta charset="UTF-8">
 
-.container{
-    display:flex;
-    justify-content:center;
-    gap:40px;
-    margin-top:20px;
-    flex-wrap:wrap;
-}
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-.panel{
-    width:420px;
-    border:2px solid white;
-    padding:20px;
-    border-radius:15px;
-    background:#111;
-}
+    <title>
+        Crypto Monitor
+    </title>
 
-.coin-title{
-    text-align:center;
-    font-size:26px;
-    font-weight:bold;
-    margin-bottom:15px;
-}
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-.input-row{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-}
+</head>
 
-.coin-input{
-    width:120px;
-    background:black;
-    color:white;
-    border:1px solid white;
-    padding:10px;
-    font-size:18px;
-}
+<body>
 
-.load-btn{
-    background:black;
-    color:white;
-    border:1px solid white;
-    padding:10px 20px;
-    font-size:18px;
-}
+    <div class="main-title">
+        DUAL COIN 1-3H AI PREDICTOR
+    </div>
 
-.price{
-    text-align:center;
-    font-size:38px;
-    margin-top:20px;
-    font-weight:bold;
-}
+    <div
+        id="updateTime"
+        class="update-time"
+    >
+        HK UPDATE TIME
+    </div>
 
-.prediction{
-    text-align:center;
-    font-size:24px;
-    margin-top:20px;
-    color:#00ff99;
-}
+    <div class="main-container">
 
-.info-box{
-    margin-top:20px;
-    height:250px;
-    overflow-y:auto;
-    border:1px solid white;
-    padding:10px;
-    white-space:pre-wrap;
-    font-size:16px;
-    background:black;
-}
+        <!-- LEFT PANEL -->
 
-.red-box-row{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    margin-top:15px;
-}
+        <div class="coin-panel">
 
-.red-box{
-    width:28px;
-    height:28px;
-    border:2px solid white;
-    background:black;
-}
+            <div class="coin-title">
+                LEFT COIN
+            </div>
 
-.red-fill{
-    background:red;
-}
+            <div class="input-row">
+
+                <input
+                    id="leftInput"
+                    value="BTC"
+                    type="text"
+                >
+
+                <button
+                    onclick="loadCoin('left')"
+                >
+                    LOAD
+                </button>
+
+            </div>
+
+            <div
+                id="leftPrice"
+                class="price"
+            >
+                Loading...
+            </div>
+
+            <div
+                id="leftPrediction"
+                class="prediction"
+            >
+                Loading...
+            </div>
+
+            <div
+                id="leftBoxes"
+                class="predict-boxes"
+            >
+            </div>
+
+            <div
+                id="leftInfo"
+                class="info"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+
+        <div class="coin-panel">
+
+            <div class="coin-title">
+                RIGHT COIN
+            </div>
+
+            <div class="input-row">
+
+                <input
+                    id="rightInput"
+                    value="ETH"
+                    type="text"
+                >
+
+                <button
+                    onclick="loadCoin('right')"
+                >
+                    LOAD
+                </button>
+
+            </div>
+
+            <div
+                id="rightPrice"
+                class="price"
+            >
+                Loading...
+            </div>
+
+            <div
+                id="rightPrediction"
+                class="prediction"
+            >
+                Loading...
+            </div>
+
+            <div
+                id="rightBoxes"
+                class="predict-boxes"
+            >
+            </div>
+
+            <div
+                id="rightInfo"
+                class="info"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- GLOBAL MACRO -->
+
+    <div
+        id="macroArea"
+        class="macro-panel"
+    >
+
+        <div class="macro-title">
+            GLOBAL MACRO DATA
+        </div>
+
+        <div class="macro-content">
+
+            TOTAL MARKET CAP
+
+            <br><br>
+
+            BTC DOMINANCE
+
+            <br><br>
+
+            FEAR & GREED INDEX
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
