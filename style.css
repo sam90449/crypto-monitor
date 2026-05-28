@@ -1,99 +1,50 @@
 body{
     margin:0;
-    padding:0;
     background:#000;
-    color:white;
+    color:#00ffff;
     font-family:Arial;
-    overflow-x:auto;
+    overflow-x:hidden;
 }
 
-.top-title{
+.main-title{
     text-align:center;
-    font-size:72px;
+    font-size:56px;
     font-weight:bold;
-    margin-top:30px;
-    margin-bottom:15px;
-    color:white;
+    margin-top:35px;
+    color:#00f7ff;
 }
 
-.update-time{
-    text-align:center;
-    color:yellow;
-    font-size:24px;
-    margin-bottom:35px;
-}
-
-.main-wrapper{
-    width:1650px;
-    margin:auto;
+.prediction-wrapper{
+    width:1100px;
+    margin:30px auto;
+    border:1px solid #333;
     display:flex;
     justify-content:space-between;
-    align-items:flex-start;
+    padding:35px;
+    box-sizing:border-box;
 }
 
-.coin-panel{
-    width:700px;
+.prediction-box{
+    width:420px;
 }
 
-.panel-title{
+.box-title{
     text-align:center;
-    font-size:52px;
-    font-weight:bold;
-    margin-bottom:20px;
-}
-
-.input-row{
-    display:flex;
-    justify-content:center;
-    gap:12px;
-    margin-bottom:35px;
-}
-
-.input-row input{
-    width:320px;
-    height:52px;
-    background:black;
+    font-size:38px;
+    margin-bottom:25px;
     color:#00ffff;
-    border:2px solid #666;
-    font-size:34px;
-    padding-left:14px;
-}
-
-.input-row button{
-    width:120px;
-    font-size:30px;
-    background:#111;
-    color:white;
-    border:2px solid #666;
-    cursor:pointer;
-}
-
-.symbol{
-    text-align:center;
-    font-size:68px;
     font-weight:bold;
-    margin-bottom:35px;
-    color:#00ffff;
 }
 
-.matrix-box{
-    width:450px;
-    margin:auto;
-    border:2px solid #666;
-    padding:20px;
-    background:#050505;
-    margin-bottom:35px;
-}
-
-.matrix-row{
+.grid-row{
     display:flex;
     align-items:center;
-    margin-bottom:18px;
+    margin-bottom:22px;
 }
 
-.matrix-label{
-    width:110px;
-    font-size:34px;
+.label{
+    width:90px;
+    font-size:32px;
     font-weight:bold;
 }
 
@@ -102,143 +53,158 @@ body{
 }
 
 .down{
-    color:#ff3355;
+    color:#ff4455;
 }
 
-.matrix-cell{
-    width:42px;
-    height:42px;
-    border:2px solid #555;
-    margin-right:12px;
-    background:#111;
+.cells{
+    display:flex;
+    gap:10px;
 }
 
-.active-green{
+.cell{
+    width:34px;
+    height:34px;
+    border:1px solid #666;
+    background:#222;
+}
+
+.fill-green{
     background:#00ff99;
-    box-shadow:0 0 15px #00ff99;
 }
 
-.active-red{
-    background:#ff3355;
-    box-shadow:0 0 15px #ff3355;
+.fill-red{
+    background:#ff4455;
 }
 
-.prediction{
+.middle-divider{
+    color:#999;
+    font-size:60px;
+    display:flex;
+    align-items:center;
+}
+
+.major-alert{
     text-align:center;
-    font-size:36px;
+    margin-top:10px;
+    font-size:30px;
+    color:#00ffaa;
     font-weight:bold;
-    margin-bottom:35px;
-    color:yellow;
 }
 
-.info-box{
-    width:430px;
-    margin:auto;
-    border:2px solid #666;
-    background:#050505;
-    padding:18px;
+.short-predict{
+    text-align:center;
+    margin-top:18px;
     font-size:24px;
-    line-height:1.7;
-    white-space:pre-line;
-}
-
-.middle-line{
-    font-size:90px;
-    margin-top:320px;
-    color:white;
-}
-
-.macro-box{
-    width:1200px;
-    margin:70px auto;
-    text-align:center;
-}
-
-.macro-title{
-    font-size:62px;
+    color:#00eaff;
     font-weight:bold;
-    color:#00ffff;
-    margin-bottom:30px;
 }
 
-.macro-score{
-    font-size:54px;
+.btc-price{
+    text-align:center;
+    margin-top:24px;
+    font-size:58px;
+    color:#ff5555;
+    font-weight:bold;
+}
+
+.btc-volume{
+    text-align:center;
+    margin-top:8px;
+    font-size:20px;
+    color:#ffffff;
+}
+
+.macro-direction{
+    text-align:center;
+    margin-top:28px;
+    font-size:52px;
     font-weight:bold;
     color:yellow;
-    margin-bottom:35px;
 }
 
-.macro-info{
-    font-size:40px;
-    margin-bottom:18px;
+.macro-reason{
+    text-align:center;
+    margin-top:10px;
+    font-size:22px;
+    color:#cccccc;
 }
 
-.green{
-    color:#00ff99;
+.global-data{
+    width:100%;
+    margin-top:25px;
+    padding-bottom:50px;
 }
 
-.red{
-    color:#ff3355;
+.global-item{
+    text-align:center;
+    font-size:28px;
+    margin-top:18px;
+    font-weight:bold;
 }
 
-@media screen and (max-width:900px){
+.dxy{
+    color:#ff5555;
+}
 
-    .top-title{
-        font-size:38px;
+.dow{
+    color:#00ffaa;
+}
+
+.us10y{
+    color:#00ffaa;
+}
+
+.vix{
+    color:#ff5577;
+}
+
+.gold{
+    color:#ff4444;
+}
+
+.fear{
+    color:#ffff00;
+}
+
+@media screen and (max-width:1200px){
+
+    .main-title{
+        font-size:28px;
+        padding:10px;
     }
 
-    .main-wrapper{
-        width:100%;
+    .prediction-wrapper{
+        width:95%;
         flex-direction:column;
-        align-items:center;
+        gap:50px;
     }
 
-    .coin-panel{
+    .prediction-box{
         width:100%;
-        margin-bottom:50px;
     }
 
-    .middle-line{
+    .middle-divider{
         display:none;
     }
 
-    .symbol{
-        font-size:42px;
+    .box-title{
+        font-size:26px;
     }
 
-    .matrix-box{
-        width:90%;
+    .label{
+        font-size:22px;
+        width:70px;
     }
 
-    .info-box{
-        width:88%;
-        font-size:18px;
+    .btc-price{
+        font-size:36px;
     }
 
-    .macro-box{
-        width:95%;
-    }
-
-    .macro-title{
+    .macro-direction{
         font-size:30px;
     }
 
-    .macro-score{
-        font-size:28px;
-    }
-
-    .macro-info{
+    .global-item{
         font-size:22px;
     }
-
-    .input-row input{
-        width:220px;
-        font-size:24px;
-    }
-
-    .input-row button{
-        width:90px;
-        font-size:22px;
-    }
-
 }
