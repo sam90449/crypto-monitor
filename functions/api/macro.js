@@ -1,137 +1,114 @@
-export async function onRequest() {
+export async function onRequestGet() {
 
     try {
 
-        async function getJson(url) {
-
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
-            });
-
-            return await response.json();
-        }
-
-        const btc =
-            await getJson(
+        const btcRes =
+            await fetch(
                 "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
             );
 
-        const eth =
-            await getJson(
+        const ethRes =
+            await fetch(
                 "https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT"
             );
 
-        const fear =
-            await getJson(
-                "https://api.alternative.me/fng/?limit=1"
+        const fearRes =
+            await fetch(
+                "https://api.alternative.me/fng/"
             );
 
-        const global =
-            await getJson(
-                "https://api.coingecko.com/api/v3/global"
-            );
+        const btc =
+            await btcRes.json();
+
+        const eth =
+            await ethRes.json();
+
+        const fear =
+            await fearRes.json();
 
         const btcPrice =
-            parseFloat(
-                btc.lastPrice || 0
-            );
+            Number(btc.lastPrice);
 
         const ethPrice =
-            parseFloat(
-                eth.lastPrice || 0
-            );
+            Number(eth.lastPrice);
 
         const btcChange =
-            parseFloat(
-                btc.priceChangePercent || 0
-            );
+            Number(btc.priceChangePercent);
 
         const btcVolume =
-            parseFloat(
-                btc.quoteVolume || 0
-            );
+            (
+                Number(btc.quoteVolume) / 1000000000
+            ).toFixed(2) + "B";
 
-        let status = "中性震盪";
-        let icon = "⚪";
+        const fearValue =
+            fear.data[0].value;
+
+        const fearText =
+            fear.data[0].value_classification;
+
+        let status = "";
+        let icon = "";
 
         if (btcChange >= 2) {
 
-            status = "偏強看漲";
+            status = "強勢看升";
             icon = "🟢";
-        }
 
-        if (btcChange <= -2) {
+        } else if (btcChange <= -2) {
 
             status = "偏弱震盪";
             icon = "🔴";
+
+        } else {
+
+            status = "中性震盪";
+            icon = "🟣";
         }
-
-        const totalCap =
-            global?.data?.total_market_cap?.usd || 0;
-
-        const btcDom =
-            global?.data?.market_cap_percentage?.btc || 0;
-
-        const fearValue =
-            fear?.data?.[0]?.value || 0;
-
-        const fearText =
-            fear?.data?.[0]?.value_classification || "-";
 
         const data = {
 
             btc:
-                btcPrice,
+                btcPrice.toFixed(2),
 
             eth:
-                ethPrice,
+                ethPrice.toFixed(2),
 
             btcChange:
                 btcChange.toFixed(2) + "%",
 
-            btcVolume:
-                (
-                    btcVolume / 1000000000
-                ).toFixed(2) + "B",
+            btcVolume,
 
             totalCap:
-                (
-                    totalCap / 1000000000000
-                ).toFixed(2) + "T",
+                "N/A",
 
             btcDom:
-                Number(btcDom).toFixed(2) + "%",
+                "N/A",
 
             fear:
                 fearValue,
 
-            fearText:
-                fearText,
+            fearText,
 
-            status:
-                status,
+            status,
 
-            icon:
-                icon,
+            icon,
 
             updateTime:
-                new Date()
-                .toLocaleString("en-US", {
-                    timeZone: "Asia/Hong_Kong"
-                })
+                new Date().toLocaleString(
+                    "en-US",
+                    {
+                        timeZone:
+                            "Asia/Hong_Kong"
+                    }
+                )
         };
 
         return new Response(
-
             JSON.stringify(data),
-
             {
                 headers: {
-                    "Content-Type":
-                    "application/json"
+                    "content-type":
+                        "application/json"
                 }
             }
         );
@@ -139,15 +116,14 @@ export async function onRequest() {
     } catch (e) {
 
         return new Response(
-
             JSON.stringify({
-                error: e.toString()
+                error:
+                    e.toString()
             }),
-
             {
                 headers: {
-                    "Content-Type":
-                    "application/json"
+                    "content-type":
+                        "application/json"
                 }
             }
         );
