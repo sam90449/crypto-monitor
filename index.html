@@ -3,107 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BTC Liquidity Monitor</title>
+
+<title>BTC Macro Dashboard</title>
 
 <link rel="stylesheet" href="style.css">
 
+<script type="text/javascript"
+src="https://s3.tradingview.com/tv.js">
+</script>
+
 </head>
+
 <body>
 
 <div class="main-title">
     BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
 </div>
 
-<div class="prediction-wrapper">
+<div class="top-status">
 
-    <div class="prediction-box">
-
-        <div class="box-title">
-            BTC 未來1-3小時預測
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲1%</div>
-            <div class="cells" id="btc_up_1"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲1.5%</div>
-            <div class="cells" id="btc_up_15"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲2%</div>
-            <div class="cells" id="btc_up_2"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼1%</div>
-            <div class="cells" id="btc_down_1"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼1.5%</div>
-            <div class="cells" id="btc_down_15"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼2%</div>
-            <div class="cells" id="btc_down_2"></div>
-        </div>
-
+    <div class="major-alert" id="alertBox">
+        Loading...
     </div>
 
-    <div class="middle-divider">
-        ||||
+    <div class="short-predict" id="predictionText">
+        Loading...
     </div>
 
-    <div class="prediction-box">
-
-        <div class="box-title">
-            道瓊斯 未來1-3小時預測
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲1%</div>
-            <div class="cells" id="dow_up_1"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲1.5%</div>
-            <div class="cells" id="dow_up_15"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label up">▲2%</div>
-            <div class="cells" id="dow_up_2"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼1%</div>
-            <div class="cells" id="dow_down_1"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼1.5%</div>
-            <div class="cells" id="dow_down_15"></div>
-        </div>
-
-        <div class="grid-row">
-            <div class="label down">▼2%</div>
-            <div class="cells" id="dow_down_2"></div>
-        </div>
-
-    </div>
-
-</div>
-
-<div class="major-alert" id="alertBox">
-    Loading...
-</div>
-
-<div class="short-predict" id="predictionText">
-    Loading...
 </div>
 
 <div class="btc-price" id="btcPrice">
@@ -119,7 +45,31 @@
 </div>
 
 <div class="macro-reason" id="macroReason">
-    Loading...
+    全球宏觀數據分析中...
+</div>
+
+<div class="charts-wrapper">
+
+    <div class="chart-box">
+
+        <div class="chart-title">
+            BTC 即時 5m 走勢
+        </div>
+
+        <div id="btc_chart"></div>
+
+    </div>
+
+    <div class="chart-box">
+
+        <div class="chart-title">
+            美元指數 DXY 1個月強弱
+        </div>
+
+        <div id="dxy_chart"></div>
+
+    </div>
+
 </div>
 
 <div class="global-data">
@@ -150,7 +100,7 @@
 
 </div>
 
-<div id="updateTime" style="display:none;">
+<div class="update-time" id="updateTime">
     Loading...
 </div>
 
