@@ -1,28 +1,15 @@
 const API_URL =
-"https://wispy-dawn-5bf8.jacky12345cheung.workers.dev";
+"https://wispy-dawn-5bf8.jacky12345cheung.workers.dev/";
 
-function getFearText(v) {
-
-    if (v <= 25) return "Extreme Fear";
-    if (v <= 45) return "Fear";
-    if (v <= 55) return "Neutral";
-    if (v <= 75) return "Greed";
-
-    return "Extreme Greed";
-}
-
-function createBlocks(activeCount, color = "#00ff99") {
+function createBlocks(active, color) {
 
     let html = "";
 
     for (let i = 0; i < 4; i++) {
 
         html += `
-        <div
-          class="block"
-          style="
-            background:${i < activeCount ? color : '#222'};
-          ">
+        <div class="block ${i < active ? "active" : ""}"
+             style="${i < active ? `background:${color};` : ""}">
         </div>
         `;
     }
@@ -30,7 +17,7 @@ function createBlocks(activeCount, color = "#00ff99") {
     return html;
 }
 
-function setGrid(score) {
+function setBlocks(score) {
 
     let up1 = 0;
     let up15 = 0;
@@ -70,66 +57,23 @@ function setGrid(score) {
         down2 = 3;
     }
 
-    document.getElementById("up1")
-        .innerHTML = createBlocks(up1, "#00ff99");
+    document.getElementById("up1").innerHTML =
+        createBlocks(up1, "#00ff99");
 
-    document.getElementById("up15")
-        .innerHTML = createBlocks(up15, "#00ff99");
+    document.getElementById("up15").innerHTML =
+        createBlocks(up15, "#00ff99");
 
-    document.getElementById("up2")
-        .innerHTML = createBlocks(up2, "#00ff99");
+    document.getElementById("up2").innerHTML =
+        createBlocks(up2, "#00ff99");
 
-    document.getElementById("down1")
-        .innerHTML = createBlocks(down1, "#ff4466");
+    document.getElementById("down1").innerHTML =
+        createBlocks(down1, "#ff3355");
 
-    document.getElementById("down15")
-        .innerHTML = createBlocks(down15, "#ff4466");
+    document.getElementById("down15").innerHTML =
+        createBlocks(down15, "#ff3355");
 
-    document.getElementById("down2")
-        .innerHTML = createBlocks(down2, "#ff4466");
-}
-
-function calcScore(globalData, btcChange) {
-
-    let score = 0;
-
-    if (globalData.dxy.change > 0)
-        score -= 1;
-    else
-        score += 1;
-
-    if (globalData.vix.change > 0)
-        score -= 1;
-    else
-        score += 1;
-
-    if (globalData.gold.change > 0)
-        score -= 1;
-    else
-        score += 1;
-
-    if (globalData.us10y.change > 0)
-        score -= 1;
-    else
-        score += 1;
-
-    if (globalData.dow.change > 0)
-        score += 1;
-    else
-        score -= 1;
-
-    if (globalData.fear.value <= 25)
-        score -= 2;
-
-    if (globalData.fear.value >= 75)
-        score += 2;
-
-    if (btcChange > 0)
-        score += 1;
-    else
-        score -= 1;
-
-    return score;
+    document.getElementById("down2").innerHTML =
+        createBlocks(down2, "#ff3355");
 }
 
 function getDirection(score) {
@@ -137,8 +81,8 @@ function getDirection(score) {
     if (score >= 5) {
 
         return {
+            title: "強勢看漲",
             risk: "Strong Pump",
-            text: "強勢看漲",
             color: "#00ff99",
             emoji: "🟢"
         };
@@ -147,8 +91,8 @@ function getDirection(score) {
     if (score >= 2) {
 
         return {
+            title: "偏強看漲",
             risk: "Bullish",
-            text: "偏強看漲",
             color: "#00ffee",
             emoji: "🟢"
         };
@@ -157,8 +101,8 @@ function getDirection(score) {
     if (score >= -1) {
 
         return {
+            title: "中性震盪",
             risk: "No Major Alert",
-            text: "中性震盪",
             color: "#ffee00",
             emoji: "🟡"
         };
@@ -167,22 +111,22 @@ function getDirection(score) {
     if (score >= -4) {
 
         return {
+            title: "偏弱看跌",
             risk: "Bearish",
-            text: "偏弱看跌",
-            color: "#ff5577",
+            color: "#ff6688",
             emoji: "🔴"
         };
     }
 
     return {
+        title: "強勢看跌",
         risk: "Major Dump Risk",
-        text: "強勢看跌",
-        color: "#ff3344",
+        color: "#ff3355",
         emoji: "🔴"
     };
 }
 
-async function fetchBTC() {
+async function fetchBinance() {
 
     const res = await fetch(
         "https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT"
@@ -191,27 +135,76 @@ async function fetchBTC() {
     return await res.json();
 }
 
-async function fetchGlobalData() {
+async function fetchGlobal() {
 
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, {
+        method: "GET"
+    });
 
-    return await res.json();
+    const text = await res.text();
+
+    try {
+
+        return JSON.parse(text);
+
+    } catch {
+
+        console.log("Worker回傳不是JSON:");
+        console.log(text);
+
+        return null;
+    }
+}
+
+function calcScore(g, btcChange) {
+
+    let score = 0;
+
+    if (g.dxy.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.vix.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.gold.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.us10y.change > 0) score -= 1;
+    else score += 1;
+
+    if (g.dow.change > 0) score += 1;
+    else score -= 1;
+
+    if (g.fear.value <= 25) score -= 2;
+
+    if (g.fear.value >= 75) score += 2;
+
+    if (btcChange > 0) score += 1;
+    else score -= 1;
+
+    return score;
 }
 
 async function loadData() {
 
     try {
 
+        document.getElementById("riskText").innerText =
+            "Loading...";
+
         const [
             btc,
             globalData
         ] = await Promise.all([
-
-            fetchBTC(),
-            fetchGlobalData()
+            fetchBinance(),
+            fetchGlobal()
         ]);
 
-        if (!globalData.success) {
+        if (!globalData || !globalData.success) {
+
+            document.getElementById("riskText").innerText =
+                "Worker API Error";
+
             return;
         }
 
@@ -227,65 +220,56 @@ async function loadData() {
         const score =
             calcScore(globalData, btcChange);
 
-        const direction =
+        const dir =
             getDirection(score);
 
-        document.getElementById("riskText")
-            .innerText =
-            `⚠ ${direction.risk}`;
+        document.getElementById("riskText").innerText =
+            `⚠ ${dir.risk}`;
 
-        document.getElementById("shortPredict")
-            .innerText =
+        document.getElementById("shortPredict").innerText =
             `短線預測 | 15m: ${(btcChange / 18).toFixed(2)}% | 30m: ${(btcChange / 9).toFixed(2)}%`;
 
-        document.getElementById("btcPrice")
-            .innerText =
+        document.getElementById("btcPrice").innerText =
             `BTC: ${btcPrice.toLocaleString(undefined,{
                 minimumFractionDigits:2,
                 maximumFractionDigits:2
             })} USDT (${btcChange.toFixed(2)}%)`;
 
-        document.getElementById("btcVolume")
-            .innerText =
+        document.getElementById("btcVolume").innerText =
             `BTC成交量: ${Math.round(btcVolume).toLocaleString()}`;
 
-        document.getElementById("macroDirection")
-            .innerHTML =
-            `${direction.emoji} 宏觀方向：${direction.text} | SCORE: ${score}`;
+        document.getElementById("macroDirection").innerHTML =
+            `${dir.emoji} 宏觀方向：${dir.title} | SCORE: ${score}`;
 
-        document.getElementById("macroDirection")
-            .style.color =
-            direction.color;
+        document.getElementById("macroDirection").style.color =
+            dir.color;
 
-        document.getElementById("dxy")
-            .innerText =
+        document.getElementById("dxy").innerText =
             `DXY美元指數: ${globalData.dxy.value.toFixed(2)} (${globalData.dxy.change.toFixed(2)}%)`;
 
-        document.getElementById("dow")
-            .innerText =
+        document.getElementById("dow").innerText =
             `道瓊斯指數: ${globalData.dow.value.toLocaleString()} (${globalData.dow.change.toFixed(2)}%)`;
 
-        document.getElementById("us10y")
-            .innerText =
+        document.getElementById("us10y").innerText =
             `美債10年期: ${globalData.us10y.value.toFixed(2)}% (${globalData.us10y.change.toFixed(2)}%)`;
 
-        document.getElementById("vix")
-            .innerText =
+        document.getElementById("vix").innerText =
             `恐慌指數(VIX): ${globalData.vix.value.toFixed(2)} (${globalData.vix.change.toFixed(2)}%)`;
 
-        document.getElementById("gold")
-            .innerText =
+        document.getElementById("gold").innerText =
             `黃金: ${globalData.gold.value.toFixed(2)} (${globalData.gold.change.toFixed(2)}%)`;
 
-        document.getElementById("fear")
-            .innerText =
+        document.getElementById("fear").innerText =
             `MARKET FEAR: ${globalData.fear.text} (${globalData.fear.value})`;
 
-        setGrid(score);
+        setBlocks(score);
 
     } catch (e) {
 
         console.log(e);
+
+        document.getElementById("riskText").innerText =
+            "Load Failed";
     }
 }
 
