@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>BTC Macro Dashboard</title>
+<title>Crypto Monitor</title>
 
 <link rel="stylesheet" href="style.css">
 
@@ -17,38 +17,29 @@ src="https://s3.tradingview.com/tv.js">
 <body>
 
 <div class="main-title">
-    BTC 宏觀方向（4-24小時） + 短線預測（1-3小時）
+    即時幣種 5m 走勢 + 美元指數 DXY
 </div>
 
-<div class="top-status">
+<div class="symbol-panel">
 
-    <div class="major-alert" id="alertBox">
-        Loading...
-    </div>
+    <input
+        type="text"
+        id="symbolInput"
+        placeholder="輸入幣種，例如：sol / btc / xrp"
+        autocomplete="off"
+    >
 
-    <div class="short-predict" id="predictionText">
-        Loading...
-    </div>
+    <button id="loadBtn">
+        顯示圖表
+    </button>
 
-</div>
-
-<div class="btc-price" id="btcPrice">
-    Loading...
-</div>
-
-<div class="btc-volume" id="btcVolume">
-    Loading...
-</div>
-
-<div class="macro-direction" id="macroText">
-    Loading...
 </div>
 
 <div class="charts-wrapper">
 
     <div class="chart-box">
 
-        <div class="chart-title">
+        <div class="chart-title" id="leftTitle">
             BTC 即時5m 走勢
         </div>
 
