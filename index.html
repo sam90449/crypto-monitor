@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
@@ -7,7 +7,7 @@
 
 <meta
 name="viewport"
-content="width=device-width,initial-scale=1.0"
+content="width=device-width, initial-scale=1.0"
 />
 
 <title>
@@ -23,10 +23,10 @@ href="style.css"
 
 <body>
 
+<div class="main-container">
+
 <div class="main-title">
-
 DUAL COIN 1-3H AI PREDICTOR
-
 </div>
 
 <div
@@ -36,24 +36,26 @@ class="update-time"
 HK UPDATE TIME
 </div>
 
-<div class="main-container">
+<div class="coins-wrapper">
+
+<!-- LEFT -->
 
 <div class="coin-panel">
 
 <div class="coin-title">
-
 LEFT COIN
-
 </div>
 
 <div class="input-row">
 
 <input
 id="leftInput"
+class="coin-input"
 value="TON"
 />
 
 <button
+class="load-btn"
 onclick="loadCoin('left')"
 >
 LOAD
@@ -63,49 +65,51 @@ LOAD
 
 <div
 id="leftPrice"
-class="price"
+class="coin-price"
 >
 Loading...
 </div>
 
 <div
 id="leftPrediction"
-class="prediction"
+class="prediction-main"
 >
 Loading...
 </div>
 
 <div
 id="leftBoxes"
-class="predict-boxes"
+class="prediction-grid"
 >
 </div>
 
 <div
 id="leftInfo"
-class="info"
+class="info-grid"
 >
 Loading...
 </div>
 
 </div>
 
+<!-- RIGHT -->
+
 <div class="coin-panel">
 
 <div class="coin-title">
-
 RIGHT COIN
-
 </div>
 
 <div class="input-row">
 
 <input
 id="rightInput"
+class="coin-input"
 value="BTC"
 />
 
 <button
+class="load-btn"
 onclick="loadCoin('right')"
 >
 LOAD
@@ -115,27 +119,27 @@ LOAD
 
 <div
 id="rightPrice"
-class="price"
+class="coin-price"
 >
 Loading...
 </div>
 
 <div
 id="rightPrediction"
-class="prediction"
+class="prediction-main"
 >
 Loading...
 </div>
 
 <div
 id="rightBoxes"
-class="predict-boxes"
+class="prediction-grid"
 >
 </div>
 
 <div
 id="rightInfo"
-class="info"
+class="info-grid"
 >
 Loading...
 </div>
@@ -146,12 +150,15 @@ Loading...
 
 <div
 id="macroArea"
-class="macro-panel"
+class="bottom-panel"
 >
 Loading...
+</div>
+
 </div>
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
