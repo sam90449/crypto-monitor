@@ -103,8 +103,9 @@ body{
 
 .global-item{
     text-align:center;
-    font-size:30px;
-    margin-top:16px;
+    font-size:60px;
+    line-height:1.5;
+    margin-top:28px;
     font-weight:bold;
 }
 
@@ -134,10 +135,10 @@ body{
 
 .update-time{
     text-align:center;
-    margin-top:20px;
-    margin-bottom:40px;
+    margin-top:25px;
+    margin-bottom:50px;
     color:#888;
-    font-size:18px;
+    font-size:28px;
 }
 
 @media screen and (max-width:1200px){
@@ -172,6 +173,10 @@ body{
     }
 
     .global-item{
-        font-size:22px;
+        font-size:28px;
+    }
+
+    .update-time{
+        font-size:18px;
     }
 }
