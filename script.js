@@ -2,7 +2,12 @@ async function getMacroData() {
 
     try {
 
-        const response = await fetch("/api/macro");
+        const response = await fetch(
+            "/api/macro?t=" + Date.now(),
+            {
+                cache: "no-store"
+            }
+        );
 
         const data = await response.json();
 
@@ -104,17 +109,8 @@ async function loadCoin(side) {
 
     }
 
-    let coinPrice = "UNSUPPORTED";
-
-    if (symbol === "BTC") {
-
-        coinPrice = data.btc;
-
-    } else if (symbol === "ETH") {
-
-        coinPrice = data.eth;
-
-    }
+    let coinPrice =
+        data.coins?.[symbol] || "UNSUPPORTED";
 
     document.getElementById(priceId).innerHTML = `
         <div class="coin-symbol">
@@ -139,7 +135,7 @@ async function loadCoin(side) {
     document.getElementById(boxesId).innerHTML = `
         <div class="mini-box">
             <div class="mini-title">
-                FEAR:
+                FEAR
             </div>
 
             <div class="mini-value">
@@ -149,7 +145,7 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                BTC DOM:
+                BTC DOM
             </div>
 
             <div class="mini-value">
@@ -159,7 +155,7 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                VOLUME:
+                VOLUME
             </div>
 
             <div class="mini-value">
@@ -169,7 +165,7 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                BTC CHANGE:
+                BTC CHANGE
             </div>
 
             <div class="mini-value">
@@ -179,7 +175,7 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                FEAR TEXT:
+                FEAR TEXT
             </div>
 
             <div class="mini-value">
@@ -189,7 +185,7 @@ async function loadCoin(side) {
 
         <div class="mini-box">
             <div class="mini-title">
-                UPDATE:
+                UPDATE
             </div>
 
             <div class="mini-value">
@@ -218,6 +214,35 @@ async function loadCoin(side) {
     document.getElementById("updateTime").innerHTML =
         "HK UPDATE TIME: " + data.updateTime;
 
+    document.getElementById("macroArea").innerHTML = `
+        <div class="macro-title">
+            GLOBAL MACRO DATA
+        </div>
+
+        <div class="macro-content">
+
+            TOTAL MARKET CAP:
+            ${data.totalCap}
+
+            <br><br>
+
+            BTC DOMINANCE:
+            ${data.btcDom}
+
+            <br><br>
+
+            BTC VOLUME:
+            ${data.btcVolume}
+
+            <br><br>
+
+            FEAR & GREED:
+            ${data.fear}
+            (${data.fearText})
+
+        </div>
+    `;
+
 }
 
 window.onload = function () {
@@ -225,5 +250,13 @@ window.onload = function () {
     loadCoin("left");
 
     loadCoin("right");
+
+    setInterval(function () {
+
+        loadCoin("left");
+
+        loadCoin("right");
+
+    }, 30000);
 
 };
