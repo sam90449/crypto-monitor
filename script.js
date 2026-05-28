@@ -3,12 +3,19 @@ async function getBinancePrice(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`,
+            {
+                cache: "no-store"
+            }
         );
+
+        if (!response.ok) {
+            return null;
+        }
 
         const data = await response.json();
 
-        if (!data.price) {
+        if (!data || !data.price) {
             return null;
         }
 
@@ -18,7 +25,7 @@ async function getBinancePrice(symbol) {
 
     } catch (e) {
 
-        console.log(e);
+        console.log("BINANCE PRICE ERROR:", e);
 
         return null;
 
@@ -31,8 +38,20 @@ async function get24hData(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`
+            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}USDT`,
+            {
+                cache: "no-store"
+            }
         );
+
+        if (!response.ok) {
+
+            return {
+                changePercent: 0,
+                volume: 0
+            };
+
+        }
 
         const data = await response.json();
 
@@ -42,6 +61,8 @@ async function get24hData(symbol) {
         };
 
     } catch (e) {
+
+        console.log("24H ERROR:", e);
 
         return {
             changePercent: 0,
@@ -57,8 +78,15 @@ async function getKlines(symbol) {
     try {
 
         const response = await fetch(
-            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`
+            `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=15m&limit=30`,
+            {
+                cache: "no-store"
+            }
         );
+
+        if (!response.ok) {
+            return [];
+        }
 
         const data = await response.json();
 
@@ -72,7 +100,7 @@ async function getKlines(symbol) {
 
     } catch (e) {
 
-        console.log(e);
+        console.log("KLINE ERROR:", e);
 
         return [];
 
@@ -82,7 +110,7 @@ async function getKlines(symbol) {
 
 function calculateMA(data, period) {
 
-    if (data.length < period) {
+    if (!data || data.length < period) {
         return 0;
     }
 
@@ -189,11 +217,32 @@ async function getMacroData() {
 
     try {
 
-        const response = await fetch("/api/macro");
+        const response = await fetch(
+            "/api/macro",
+            {
+                cache: "no-store"
+            }
+        );
+
+        if (!response.ok) {
+
+            return {
+                fear: "N/A",
+                dxy: "N/A",
+                dow: "N/A",
+                vix: "N/A",
+                gold: "N/A",
+                us10y: "N/A",
+                fearText: "N/A"
+            };
+
+        }
 
         return await response.json();
 
     } catch (e) {
+
+        console.log("MACRO ERROR:", e);
 
         return {
             fear: "N/A",
@@ -437,9 +486,25 @@ window.onload = async function () {
             getHKTime24();
     }
 
-    await loadCoin("left");
+    try {
 
-    await loadCoin("right");
+        await loadCoin("left");
+
+    } catch (e) {
+
+        console.log("LEFT LOAD ERROR:", e);
+
+    }
+
+    try {
+
+        await loadCoin("right");
+
+    } catch (e) {
+
+        console.log("RIGHT LOAD ERROR:", e);
+
+    }
 
     const loading =
         document.getElementById("bottomLoading");
