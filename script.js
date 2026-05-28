@@ -31,7 +31,9 @@ async function getMacroData() {
 
     try {
 
-        const response = await fetch("/api/macro");
+        const response = await fetch("/api/macro", {
+            cache: "no-store"
+        });
 
         const data = await response.json();
 
@@ -64,13 +66,13 @@ async function getMacroData() {
 
 }
 
-function renderColorBoxes(count, color) {
+function createBoxes(active, color) {
 
     let html = "";
 
     for (let i = 0; i < 4; i++) {
 
-        if (i < count) {
+        if (i < active) {
 
             html += `<div class="small-box ${color}"></div>`;
 
@@ -86,7 +88,7 @@ function renderColorBoxes(count, color) {
 
 }
 
-function renderBoxes(score) {
+function renderPredictionBoxes(score) {
 
     let up1 = 0;
     let up15 = 0;
@@ -95,10 +97,6 @@ function renderBoxes(score) {
     let down1 = 0;
     let down15 = 0;
     let down2 = 0;
-
-    // =========================
-    // BULLISH
-    // =========================
 
     if (score >= 1) {
 
@@ -135,10 +133,6 @@ function renderBoxes(score) {
         up2 = 3;
 
     }
-
-    // =========================
-    // BEARISH
-    // =========================
 
     if (score <= -1) {
 
@@ -178,76 +172,76 @@ function renderBoxes(score) {
 
     return `
 
-        <div class="box-grid">
+        <div class="prediction-grid">
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label green-text">
+                <div class="prediction-label green-text">
                     ▲1%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(up1, "green")}
+                <div class="prediction-boxes">
+                    ${createBoxes(up1, "green")}
                 </div>
 
             </div>
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label green-text">
+                <div class="prediction-label green-text">
                     ▲1.5%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(up15, "green")}
+                <div class="prediction-boxes">
+                    ${createBoxes(up15, "green")}
                 </div>
 
             </div>
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label green-text">
+                <div class="prediction-label green-text">
                     ▲2%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(up2, "green")}
+                <div class="prediction-boxes">
+                    ${createBoxes(up2, "green")}
                 </div>
 
             </div>
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label red-text">
+                <div class="prediction-label red-text">
                     ▼1%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(down1, "red")}
+                <div class="prediction-boxes">
+                    ${createBoxes(down1, "red")}
                 </div>
 
             </div>
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label red-text">
+                <div class="prediction-label red-text">
                     ▼1.5%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(down15, "red")}
+                <div class="prediction-boxes">
+                    ${createBoxes(down15, "red")}
                 </div>
 
             </div>
 
-            <div class="box-row">
+            <div class="prediction-row">
 
-                <div class="box-label red-text">
+                <div class="prediction-label red-text">
                     ▼2%
                 </div>
 
-                <div class="box-container">
-                    ${renderColorBoxes(down2, "red")}
+                <div class="prediction-boxes">
+                    ${createBoxes(down2, "red")}
                 </div>
 
             </div>
@@ -293,16 +287,28 @@ async function loadCoin(side) {
             .toUpperCase();
 
     document.getElementById(priceId).innerHTML =
-        "Loading...";
+        `
+        <div class="loading-text">
+            Loading...
+        </div>
+        `;
 
     document.getElementById(predictionId).innerHTML =
-        "Loading...";
+        `
+        <div class="loading-text">
+            Loading...
+        </div>
+        `;
 
     document.getElementById(boxesId).innerHTML =
         "";
 
     document.getElementById(infoId).innerHTML =
-        "Loading...";
+        `
+        <div class="loading-text">
+            Loading...
+        </div>
+        `;
 
     const price =
         await getBinancePrice(symbol);
@@ -316,10 +322,26 @@ async function loadCoin(side) {
     ) {
 
         document.getElementById(priceId).innerHTML =
-            `${symbol}/USDT`;
+            `
+            <div class="coin-symbol">
+                ${symbol}/USDT
+            </div>
+
+            <div class="coin-price unsupported">
+                ${price}
+            </div>
+            `;
 
         document.getElementById(predictionId).innerHTML =
-            price;
+            `
+            <div class="prediction-title">
+                1-3H AI PREDICTION:
+            </div>
+
+            <div class="prediction-main">
+                中性震盪 🟣
+            </div>
+            `;
 
         return;
 
@@ -333,15 +355,19 @@ async function loadCoin(side) {
 
     }
 
-    if (macro.vix !== "N/A") {
+    if (macro.dxy !== "N/A") {
 
-        const vixNumber =
+        const dxy =
             parseFloat(
-                String(macro.vix)
+                String(macro.dxy)
                     .replace(/[^\d.-]/g, "")
             );
 
-        if (vixNumber >= 25) {
+        if (dxy <= 100) {
+
+            score += 1;
+
+        } else {
 
             score -= 1;
 
@@ -349,19 +375,15 @@ async function loadCoin(side) {
 
     }
 
-    if (macro.dxy !== "N/A") {
+    if (macro.vix !== "N/A") {
 
-        const dxyNumber =
+        const vix =
             parseFloat(
-                String(macro.dxy)
+                String(macro.vix)
                     .replace(/[^\d.-]/g, "")
             );
 
-        if (dxyNumber <= 100) {
-
-            score += 1;
-
-        } else {
+        if (vix >= 25) {
 
             score -= 1;
 
@@ -396,105 +418,132 @@ async function loadCoin(side) {
 
     document.getElementById(priceId).innerHTML =
         `
-        ${symbol}/USDT
-        <br>
-        ${price}
+        <div class="coin-symbol">
+            ${symbol}/USDT
+        </div>
+
+        <div class="coin-price">
+            ${price}
+        </div>
         `;
 
     document.getElementById(predictionId).innerHTML =
         `
-        ${prediction}
-        ${icon}
+        <div class="prediction-title">
+            1-3H AI PREDICTION:
+        </div>
+
+        <div class="prediction-main">
+            ${prediction} ${icon}
+        </div>
         `;
 
     document.getElementById(boxesId).innerHTML =
-        renderBoxes(score);
+        renderPredictionBoxes(score);
 
     document.getElementById(infoId).innerHTML =
         `
+
         <div class="info-grid">
 
             <div class="info-card">
+
                 <div class="info-title">
-                    FEAR
+                    FEAR:
                 </div>
 
                 <div class="info-value">
                     ${macro.fear}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    DXY
+                    DXY:
                 </div>
 
                 <div class="info-value">
                     ${macro.dxy}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    DOW
+                    DOW:
                 </div>
 
                 <div class="info-value">
                     ${macro.dow}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    VIX
+                    VIX:
                 </div>
 
                 <div class="info-value">
                     ${macro.vix}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    GOLD
+                    GOLD:
                 </div>
 
                 <div class="info-value">
                     ${macro.gold}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    US10Y
+                    US10Y:
                 </div>
 
                 <div class="info-value">
                     ${macro.us10y}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    MARKET FEAR
+                    MARKET FEAR:
                 </div>
 
                 <div class="info-value">
                     ${macro.fearText}
                 </div>
+
             </div>
 
             <div class="info-card">
+
                 <div class="info-title">
-                    UPDATE
+                    UPDATE:
                 </div>
 
                 <div class="info-value">
                     ${macro.updateTime}
                 </div>
+
             </div>
 
         </div>
+
         `;
 
 }
