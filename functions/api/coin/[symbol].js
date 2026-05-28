@@ -1,229 +1,194 @@
-export async function onRequest(context){
+export async function onRequest(context) {
 
-    const symbol =
-    context.params.symbol.toUpperCase();
+    try {
 
-    async function safeFetch(url,retry=3){
+        const symbol =
+            context.params.symbol
+            .toUpperCase();
 
-        for(let i=0;i<=retry;i++){
+        const response =
+            await fetch(
+                `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=1h&limit=30`
+            );
 
-            try{
+        const klines =
+            await response.json();
 
-                const response =
-                await fetch(url,{
-                    method:"GET",
-                    headers:{
-                        "Accept":"application/json"
+        if (
+            !Array.isArray(klines)
+        ) {
+
+            return new Response(
+
+                JSON.stringify({
+                    error: "BINANCE FAIL"
+                }),
+
+                {
+                    headers: {
+                        "Content-Type":
+                        "application/json"
                     }
-                });
-
-                if(response.ok){
-
-                    return response;
                 }
-
-            }catch(e){
-
-                console.log(e);
-            }
-
-            await new Promise(
-                r=>setTimeout(r,400)
             );
         }
 
-        throw new Error("FETCH FAIL");
-    }
+        const closes =
+            klines.map(
+                k => parseFloat(k[4])
+            );
 
-    function calcMA(closes,length){
+        function ma(arr, len) {
 
-        const result = [];
+            const slice =
+                arr.slice(-len);
 
-        for(let i=0;i<closes.length;i++){
-
-            if(i < length-1){
-
-                result.push(null);
-
-            }else{
-
-                const slice =
-                closes.slice(
-                    i-length+1,
-                    i+1
-                );
-
-                const avg =
+            const sum =
                 slice.reduce(
                     (a,b)=>a+b,
                     0
-                ) / length;
+                );
 
-                result.push(avg);
-            }
+            return sum / len;
         }
 
-        return result;
-    }
+        const ma5 =
+            ma(closes,5);
 
-    function calcSlope(values){
+        const ma15 =
+            ma(closes,15);
 
-        if(values.length < 2){
+        const ma30 =
+            ma(closes,30);
 
-            return 0;
-        }
+        const prev5 =
+            ma(
+                closes.slice(0,-1),
+                5
+            );
 
-        const first =
-        values[0];
+        const prev15 =
+            ma(
+                closes.slice(0,-1),
+                15
+            );
 
-        const last =
-        values[
-            values.length-1
-        ];
+        const prev30 =
+            ma(
+                closes.slice(0,-1),
+                30
+            );
 
-        if(first === 0){
-
-            return 0;
-        }
-
-        return (
+        const ma5slope =
             (
-                last-first
-            ) / first
-        ) * 100;
-    }
+                (ma5-prev5)
+                /
+                prev5
+            ) * 100;
 
-    const response =
-    await safeFetch(
-`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=5m&limit=60`
-    );
+        const ma15slope =
+            (
+                (ma15-prev15)
+                /
+                prev15
+            ) * 100;
 
-    const klines =
-    await response.json();
+        const ma30slope =
+            (
+                (ma30-prev30)
+                /
+                prev30
+            ) * 100;
 
-    if(
-        !Array.isArray(klines)
-    ){
+        const predict =
+            (
+                ma5slope * 0.5
+                +
+                ma15slope * 0.3
+                +
+                ma30slope * 0.2
+            );
 
-        return Response.json({
+        const price =
+            closes[
+                closes.length - 1
+            ];
 
-            error:"INVALID BINANCE DATA"
+        const target =
+            price *
+            (
+                1 + predict / 100
+            );
 
-        },{
-            status:500
-        });
-    }
+        const data = {
 
-    const closes =
-    klines.map(
-        k=>parseFloat(k[4])
-    );
+            symbol:
+                symbol,
 
-    const price =
-    closes[
-        closes.length-1
-    ];
+            price:
+                Number(price),
 
-    const ma5 =
-    calcMA(closes,5);
+            target:
+                Number(target),
 
-    const ma15 =
-    calcMA(closes,15);
+            predict:
+                Number(predict),
 
-    const ma30 =
-    calcMA(closes,30);
+            ma5:
+                Number(ma5),
 
-    const ma5slope =
-    calcSlope(
-        ma5
-        .slice(-5)
-        .filter(v=>v)
-    );
+            ma15:
+                Number(ma15),
 
-    const ma15slope =
-    calcSlope(
-        ma15
-        .slice(-5)
-        .filter(v=>v)
-    );
+            ma30:
+                Number(ma30),
 
-    const ma30slope =
-    calcSlope(
-        ma30
-        .slice(-5)
-        .filter(v=>v)
-    );
+            ma5slope:
+                Number(ma5slope),
 
-    let predict =
-        ma5slope * 0.5 +
-        ma15slope * 0.3 +
-        ma30slope * 0.2;
+            ma15slope:
+                Number(ma15slope),
 
-    if(isNaN(predict)){
+            ma30slope:
+                Number(ma30slope),
 
-        predict = 0;
-    }
+            updateTime:
+                new Date()
+                .toLocaleString(
+                    "en-US",
+                    {
+                        timeZone:
+                        "Asia/Hong_Kong"
+                    }
+                )
+        };
 
-    if(predict > 2){
+        return new Response(
 
-        predict = 2;
-    }
+            JSON.stringify(data),
 
-    if(predict < -2){
-
-        predict = -2;
-    }
-
-    const target =
-    price * (
-        1 + predict / 100
-    );
-
-    return Response.json({
-
-        symbol,
-
-        price,
-
-        target,
-
-        predict,
-
-        ma5:
-        ma5[
-            ma5.length-1
-        ],
-
-        ma15:
-        ma15[
-            ma15.length-1
-        ],
-
-        ma30:
-        ma30[
-            ma30.length-1
-        ],
-
-        ma5slope,
-
-        ma15slope,
-
-        ma30slope,
-
-        updateTime:
-        new Date()
-        .toLocaleString(
-            "en-US",
             {
-                timeZone:
-                "Asia/Hong_Kong"
+                headers: {
+                    "Content-Type":
+                    "application/json"
+                }
             }
-        )
+        );
 
-    },{
-        headers:{
-            "Access-Control-Allow-Origin":"*",
-            "Cache-Control":"no-store"
-        }
-    });
+    } catch (e) {
+
+        return new Response(
+
+            JSON.stringify({
+                error: e.toString()
+            }),
+
+            {
+                headers: {
+                    "Content-Type":
+                    "application/json"
+                }
+            }
+        );
+    }
 }
