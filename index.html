@@ -1,68 +1,157 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Monitor</title>
 
-<style>
-body{
-    background:#111;
-    color:#00ff99;
-    font-family:Arial;
-    text-align:center;
-    padding-top:50px;
-}
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0"
+/>
 
-.box{
-    background:#1b1b1b;
-    width:300px;
-    margin:auto;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 0 15px #00ff99;
-}
+<title>
+Crypto Monitor
+</title>
 
-.price{
-    font-size:40px;
-    margin-top:20px;
-}
-</style>
+<link
+rel="stylesheet"
+href="style.css"
+/>
+
 </head>
 
 <body>
 
-<div class="box">
+<div class="main-title">
 
-<h1>BTCUSDT</h1>
+DUAL COIN 1-3H AI PREDICTOR
 
-<div class="price" id="price">
+</div>
+
+<div
+id="updateTime"
+class="update-time"
+>
+HK UPDATE TIME
+</div>
+
+<div class="main-container">
+
+<div class="coin-panel">
+
+<div class="coin-title">
+
+LEFT COIN
+
+</div>
+
+<div class="input-row">
+
+<input
+id="leftInput"
+value="TON"
+/>
+
+<button
+onclick="loadCoin('left')"
+>
+LOAD
+</button>
+
+</div>
+
+<div
+id="leftPrice"
+class="price"
+>
+Loading...
+</div>
+
+<div
+id="leftPrediction"
+class="prediction"
+>
+Loading...
+</div>
+
+<div
+id="leftBoxes"
+class="predict-boxes"
+>
+</div>
+
+<div
+id="leftInfo"
+class="info"
+>
 Loading...
 </div>
 
 </div>
 
-<script>
+<div class="coin-panel">
 
-async function loadPrice(){
+<div class="coin-title">
 
-    const url =
-    "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+RIGHT COIN
 
-    const response = await fetch(url);
+</div>
 
-    const data = await response.json();
+<div class="input-row">
 
-    document.getElementById("price").innerHTML =
-    parseFloat(data.price).toFixed(2);
+<input
+id="rightInput"
+value="BTC"
+/>
 
-}
+<button
+onclick="loadCoin('right')"
+>
+LOAD
+</button>
 
-loadPrice();
+</div>
 
-setInterval(loadPrice,5000);
+<div
+id="rightPrice"
+class="price"
+>
+Loading...
+</div>
 
-</script>
+<div
+id="rightPrediction"
+class="prediction"
+>
+Loading...
+</div>
+
+<div
+id="rightBoxes"
+class="predict-boxes"
+>
+</div>
+
+<div
+id="rightInfo"
+class="info"
+>
+Loading...
+</div>
+
+</div>
+
+</div>
+
+<div
+id="macroArea"
+class="macro-panel"
+>
+Loading...
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
